@@ -27,20 +27,12 @@
     <script type="text/babel">
         // Recharts와 React가 글로벌 객체로 정상 로드되었는지 확인 후 구조 분해 할당
         const { useState, useMemo, useRef, useEffect } = React;
-        const { 
-            BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-            ComposedChart, Line, Cell, Legend, PieChart, Pie
-        } = window.Recharts;
 
         // 아이콘 컴포넌트 (Lucide 아이콘 로드 안정화)
         const Icon = ({ name, className }) => {
-            const iconRef = useRef(null);
-            useEffect(() => {
-                if (window.lucide) {
-                    window.lucide.createIcons();
-                }
-            }, [name]);
-            return <i data-lucide={name} className={className} ref={iconRef}></i>;
+            // App 컴포넌트의 useEffect에서 createIcons()를 호출하므로, 여기서는 아이콘 태그만 반환합니다.
+            // 이를 통해 불필요한 중복 호출을 방지하고 코드를 단순화합니다.
+            return <i data-lucide={name} className={className}></i>;
         };
 
         const PIE_COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#a4de6c', '#d0ed57', '#ffc658'];
@@ -96,6 +88,12 @@
         };
 
         function App() {
+            // 라이브러리 로드 후 컴포넌트 할당 (안정성 강화)
+            const { 
+                BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+                ComposedChart, Legend
+            } = window.Recharts || {};
+
             // --- 상태 관리 ---
             const [activeTab, setActiveTab] = useState('genmac');
             const [appData, setAppData] = useState(null); // 분리된 데이터를 저장할 상태
@@ -250,6 +248,11 @@
             // 데이터 로딩 중일 때 로딩 화면 표시
             if (isDataLoading) {
                 return <div className="p-8 text-center text-slate-500">데이터를 불러오는 중입니다...</div>;
+            }
+
+            // 차트 라이브러리가 로드되지 않았을 경우 에러 메시지 표시
+            if (!BarChart) {
+                return <div className="p-8 text-center text-red-500">오류: 차트 라이브러리를 불러오지 못했습니다. 페이지를 새로고침 해주세요.</div>;
             }
 
             return (
