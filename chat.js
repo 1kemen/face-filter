@@ -8,7 +8,7 @@ const openai = new OpenAI({
 });
 
 // 이 함수가 Vercel에 의해 API 요청 시 실행됩니다.
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   // CORS 헤더 설정 (외부 도메인에서의 요청 허용)
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -45,4 +45,4 @@ export default async function handler(req, res) {
     console.error('Error calling OpenAI API:', error);
     return res.status(500).json({ response: 'AI 모델을 호출하는 중 오류가 발생했습니다.' });
   }
-}
+};
