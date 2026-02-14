@@ -26,8 +26,8 @@ module.exports = async (req, res) => {
 
   try {
     // Vercel은 자동으로 body를 파싱해줍니다.
-    const { messages, systemPrompt } = req.body; 
-    const userQuery = messages[messages.length - 1]?.content || 'No query found';
+    const { messages, systemPrompt } = req.body;
+    const userQuery = messages && messages.length > 0 ? messages[messages.length - 1].content : 'No query found';
     console.log('Received User Query:', userQuery);
 
     // OpenAI API를 호출하여 채팅 응답을 생성합니다.
@@ -42,7 +42,11 @@ module.exports = async (req, res) => {
     const aiResponse = completion.choices[0].message.content;
     return res.status(200).json({ response: aiResponse });
   } catch (error) {
-    console.error('Error calling OpenAI API:', error);
-    return res.status(500).json({ response: 'AI 모델을 호출하는 중 오류가 발생했습니다.' });
+    // 서버 로그에 더 상세한 에러를 기록합니다.
+    console.error('Error in API function:', error);
+
+    // 클라이언트에게 더 유용한 에러 메시지를 전달합니다.
+    const errorMessage = error.response && error.response.data ? JSON.stringify(error.response.data) : error.message;
+    return res.status(500).json({ response: `AI 모델 호출 중 서버 오류 발생: ${errorMessage}` });
   }
 };
