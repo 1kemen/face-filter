@@ -18,33 +18,8 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Marked.js for Markdown parsing -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .recharts-cartesian-grid-horizontal line, .recharts-cartesian-grid-vertical line { stroke: #f1f5f9; }
-        
-        /* AI 답변의 마크다운 스타일링 */
-        .ai-message-bubble table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 0.5rem;
-            margin-bottom: 0.5rem;
-        }
-        .ai-message-bubble th, .ai-message-bubble td {
-            border: 1px solid #e5e7eb; /* slate-200 */
-            padding: 0.5rem 0.75rem;
-            text-align: left;
-        }
-        .ai-message-bubble th {
-            background-color: #f9fafb; /* slate-50 */
-            font-weight: 600;
-        }
-        .ai-message-bubble ul, .ai-message-bubble ol {
-            padding-left: 1.5rem;
-            margin-top: 0.5rem;
-            margin-bottom: 0.5rem;
-        }
-    </style>
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-slate-50">
     <div id="root"></div>
@@ -68,77 +43,7 @@
             return <i data-lucide={name} className={className} ref={iconRef}></i>;
         };
 
-        // --- 데이터 정의 (Ver 35.4) ---
-        const faceLaserData = [
-            { name: '인중', time: 20, type: 'face' },
-            { name: '인중+앞턱', time: 45, type: 'face' },
-            { name: '인중+앞턱+턱밑', time: 75, type: 'face' },
-            { name: '얼굴전체', time: 120, type: 'face' },
-            { name: '구렛나루/미간', time: 30, type: 'face' },
-            { name: '눈밑+관자', time: 30, type: 'face' },
-        ];
-
-        const bodyLaserData = [
-            { name: '겨드랑이', time: 30, type: 'body' },
-            { name: '팔하완', time: 240, type: 'body' },
-            { name: '종아리무릎포함', time: 240, type: 'body' },
-            { name: '여자 팔/다리 전체', time: 620, type: 'body' },
-            { name: '남자 팔/다리 전체', time: 780, type: 'body' },
-            { name: '브라질리언', time: 120, type: 'body' }
-        ];
-
-        const doctorProfiles = [
-            { id: 'A_normal', name: 'A대표원장님(평시)', face: 1.0, body: 0.7, color: '#6366f1' },
-            { id: 'A_peak', name: 'A대표원장님(피크)', face: 0.8, body: 0.7, color: '#ef4444' },
-            { id: 'B', name: 'B정원장님', face: 1.3, body: 1.0, color: '#8b5cf6' },
-            { id: 'C', name: 'C이원장님', face: 1.5, body: 1.0, color: '#ec4899' },
-            { id: 'D', name: 'D은원장님', face: 2.0, body: 1.0, color: '#10b981' },
-        ];
-
-        const otherProcedureData = [
-          // === 간호팀 ===
-          { team: '간호팀', name: '손주사 (리쥬란, 스킨보톡스 등)', procedure: 15, anesthesia: 20, note: '용량/원장님별 상이. 별도 계수 적용 필요.' },
-          { team: '간호팀', name: '포텐자', procedure: 7.5, anesthesia: 20, note: '시술 5-10분' },
-          { team: '간호팀', name: 'MTS', procedure: 6.5, anesthesia: 15, note: '시술 5-8분' },
-          { team: '간호팀', name: '더마샤인', procedure: 6, anesthesia: 0, note: '시술 5-7분, 마취 시간 확인 필요' },
-          { team: '간호팀', name: '볼륨 시술 (쥬베룩, 필러 등)', procedure: 15, anesthesia: 10, note: '시술 10-20분' },
-        
-          // === 피부팀 ===
-          { team: '피부팀', name: '스케일링/블랙필', procedure: 5, anesthesia: 0, note: '' },
-          { team: '피부팀', name: '아쿠아필 (1,2,3제)', procedure: 15, anesthesia: 0, note: '' },
-          { team: '피부팀', name: '라라필/밀크필', procedure: 10, anesthesia: 0, note: '' },
-          { team: '피부팀', name: '인모드 FX (얼굴전체)', procedure: 15, anesthesia: 10, note: '' },
-          { team: '피부팀', name: '인모드 포마 (얼굴전체)', procedure: 15, anesthesia: 0, note: '' },
-          { team: '피부팀', name: '슈링크 (300샷)', procedure: 10, anesthesia: 10, note: '슈링크 울트라 기준' },
-          { team: '피부팀', name: '슈링크 부스터', procedure: 10, anesthesia: 0, note: '샷수/부위 확인 필요' },
-          { team: '피부팀', name: '리니어지/올타이트', procedure: 15, anesthesia: 0, note: '' },
-          { team: '피부팀', name: '볼뉴머 (300샷)', procedure: 10, anesthesia: 0, note: '' },
-          { team: '피부팀', name: '울쎄라 (300샷)', procedure: 25, anesthesia: 30, note: '기존 데이터 기반 마취 30분 적용' },
-          { team: '피부팀', name: '세르프 (300샷)', procedure: 25, anesthesia: 0, note: '' },
-          { team: '피부팀', name: '피코토닝', procedure: 5, anesthesia: 0, note: '' },
-          { team: '피부팀', name: '레이저토닝', procedure: 5, anesthesia: 0, note: '' },
-          { team: '피부팀', name: '피코줌패스', procedure: 5, anesthesia: 10, note: '' },
-          { team: '피부팀', name: '제네시스', procedure: 5, anesthesia: 0, note: '마취 시간 확인 필요' },
-          { team: '피부팀', name: '피코프락셀/프락셀', procedure: 5, anesthesia: 15, note: '' },
-          { team: '피부팀', name: '엑셀V (홍조)', procedure: 3, anesthesia: 0, note: '' },
-          { team: '피부팀', name: '카프리', procedure: 7, anesthesia: 0, note: '' },
-        ];
-        
         const PIE_COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#a4de6c', '#d0ed57', '#ffc658'];
-
-        // 시술 순서에 대한 규칙 데이터
-        const procedureOrderRules = [
-            { 
-                name: "기본 시술 순서 원칙", 
-                rule: "일반적으로 '클렌징/필링' 시술을 가장 먼저 하여 피부를 정리하고, 그 다음 '레이저' 시술, 마지막으로 '주사' 시술을 진행합니다. 마취가 필요한 시술은 대기 시간을 고려하여 가장 먼저 마취 크림을 도포하는 경우가 많습니다." 
-            },
-            { 
-                name: "자주 묻는 시술 조합 예시", 
-                procedures: ["젠맥", "아쿠아필", "피코", "보톡스"],
-                order: "아쿠아필 -> 피코 -> 젠맥 -> 보톡스",
-                reason: "피부 표면을 정리하는 아쿠아필(필링)을 먼저, 그 다음 피코/젠맥(레이저), 마지막으로 보톡스(주사) 순서로 진행합니다."
-            }
-        ];
 
         // 의료진별 시술 시간 계산 함수 (독립 함수로 분리)
         const calculateTime = (item, doctor) => {
@@ -191,13 +96,43 @@
         };
 
         function App() {
+            // --- 상태 관리 ---
             const [activeTab, setActiveTab] = useState('genmac');
+            const [appData, setAppData] = useState(null); // 분리된 데이터를 저장할 상태
+            const [isDataLoading, setIsDataLoading] = useState(true); // 데이터 로딩 상태
             const [messages, setMessages] = useState([
                 { role: 'model', text: '안녕하세요! 병원 운영 AI 매니저 페필이입니다. ✨\n무엇을 도와드릴까요?' }
             ]);
+            const [selectedDoctors, setSelectedDoctors] = useState([]); // 의료진 필터링 상태
             const [input, setInput] = useState('');
-            const [isLoading, setIsLoading] = useState(false);
+            const [isLoading, setIsLoading] = useState(false); // AI 답변 로딩 상태
             const messagesEndRef = useRef(null);
+
+            // --- 데이터 로딩 ---
+            useEffect(() => {
+                async function loadData() {
+                    try {
+                        const [genmacRes, otherRes, rulesRes, patchNotesRes] = await Promise.all([
+                            fetch('./data/genmac.json'),
+                            fetch('./data/other-procedures.json'),
+                            fetch('./data/procedure-rules.json'),
+                            fetch('./data/patch-notes.json')
+                        ]);
+                        const genmacData = await genmacRes.json();
+                        const otherProcedureData = await otherRes.json();
+                        const procedureOrderRules = await rulesRes.json();
+                        const patchNotes = await patchNotesRes.json();
+                        setSelectedDoctors(genmacData.doctorProfiles.map(d => d.id)); // 필터 상태 초기화
+                        setAppData({ ...genmacData, otherProcedureData, procedureOrderRules, patchNotes });
+                    } catch (error) {
+                        console.error("데이터 로딩 실패:", error);
+                        // 여기에 사용자에게 보여줄 에러 처리 로직을 추가할 수 있습니다.
+                    } finally {
+                        setIsDataLoading(false);
+                    }
+                }
+                loadData();
+            }, []);
 
             useEffect(() => {
                 if (window.lucide) window.lucide.createIcons();
@@ -212,15 +147,30 @@
             };
 
             const chartData = useMemo(() => {
-                const allProcedures = [...faceLaserData, ...bodyLaserData];
+                if (!appData) return [];
+                const allProcedures = [...appData.faceLaserData, ...appData.bodyLaserData];
                 return allProcedures.map(item => {
                     const procedureTimes = { name: item.name };
-                    doctorProfiles.forEach(doc => {
+                    filteredDoctors.forEach(doc => {
                         procedureTimes[doc.id] = calculateTime(item, doc);
                     });
                     return procedureTimes;
                 });
-            }, []);
+            }, [appData, selectedDoctors]);
+
+            const handleDoctorToggle = (doctorId) => {
+                setSelectedDoctors(prev =>
+                    prev.includes(doctorId)
+                        ? prev.filter(id => id !== doctorId)
+                        : [...prev, doctorId]
+                );
+            };
+
+            const filteredDoctors = useMemo(() => {
+                if (!appData) return [];
+                // 원본 순서 유지를 위해 appData.doctorProfiles를 기준으로 필터링
+                return appData.doctorProfiles.filter(doc => selectedDoctors.includes(doc.id));
+            }, [appData, selectedDoctors]);
 
             const handleSendMessage = async () => {
                 if (!input.trim()) return;
@@ -232,30 +182,34 @@
 
                 try {
                     const systemPrompt = `
-                        당신은 병원 운영을 돕는 유능한 'AI 매니저'입니다. 아래의 병원 데이터를 바탕으로 질문에 정확하게 답변하세요.
+                        <role>
+                        당신은 '어레인지 클리닉'의 운영 흐름을 완벽하게 이해하고 있는 최고 수준의 AI 어시스턴트 '페필이'입니다.
+                        주어진 데이터를 바탕으로, 단계별 사고를 통해 가장 정확하고 전문적인 답변을 제공해야 합니다.
+                        </role>
 
-                        [데이터 1: 얼굴 제모 기본 시간(초)]
-                        ${JSON.stringify(faceLaserData)}
+                        <instructions>
+                        1.  **질문 분석:** 사용자의 질문 의도를 명확히 파악합니다.
+                        2.  **데이터 조회:** 질문과 관련된 정보를 아래 `<data>` 섹션에서 찾습니다.
+                        3.  **규칙 적용:** 조회된 데이터에 `<rules>` 섹션의 계산법이나 순서 규칙을 적용하여 단계적으로 결론을 도출합니다.
+                        4.  **답변 생성:** 도출된 결론을 바탕으로, 한국어로 명확하고 간결하게 답변을 구성합니다. 필요시 표나 목록을 적극적으로 활용하세요.
+                        </instructions>
 
-                        [데이터 2: 바디 제모 기본 시간(초)]
-                        ${JSON.stringify(bodyLaserData)}
+                        <rules>
+                        -   **시간 계산 규칙:** 시술 시간 계산 시, 기본 시간(time)에 의료진의 계수(face 또는 body)를 곱하고, 그 결과를 10초 단위로 반올림합니다. (예: 24초 -> 20초, 26초 -> 30초)
+                        -   **예외 규칙:** A대표원장님 피크타임 '얼굴전체' 시술은 항상 80초입니다.
+                        -   **순서 규칙:** 시술 순서에 대한 질문에는 <procedure_order_rules> 데이터를 최우선으로 참고하여 원칙과 예시를 들어 설명합니다.
+                        </rules>
 
-                        [데이터 3: 의료진별 프로필 및 속도 계수]
-                        ${JSON.stringify(doctorProfiles)}
-                        * 중요: A대표원장님은 얼굴 제모 시 평시(1.0)와 피크타임(0.8) 계수가 다릅니다. 바디 제모는 항상 0.7로 가장 빠릅니다.
-
-                        [데이터 4: 타 부서 시술 및 와이핑 타이밍(분)]
-                        ${JSON.stringify(otherProcedureData)}
-
-                        [데이터 5: 시술 순서 규칙]
-                        ${JSON.stringify(procedureOrderRules)}
-
-                        [역할 및 지침]
-                        1. 시술 시간 계산 시, 기본 시간(time)에 의료진의 계수(face 또는 body)를 곱하여 계산합니다. (예: 인중(20초) * C원장님(1.5) = 30초)
-                        2. 계산된 시간은 10초 단위로 반올림합니다. (예: 24초 -> 20초, 26초 -> 30초)
-                        3. A대표원장님 피크타임 '얼굴전체' 시술은 80초로 고정되어 있습니다.
-                        4. 답변은 한국어로 간결하고 전문적으로 작성하세요. 필요한 경우 표나 불렛포인트를 사용하세요.
-                        5. 시술 순서에 대한 질문에는 [데이터 5]를 최우선으로 참고하여 원칙과 예시를 들어 설명하세요.
+                        <data>
+                            <face_laser_data>${JSON.stringify(appData.faceLaserData)}</face_laser_data>
+                            <body_laser_data>${JSON.stringify(appData.bodyLaserData)}</body_laser_data>
+                            <doctor_profiles>
+                                ${JSON.stringify(appData.doctorProfiles)}
+                                * 중요: A대표원장님은 얼굴 제모 시 평시(1.0)와 피크타임(0.8) 계수가 다릅니다. 바디 제모는 항상 0.7로 가장 빠릅니다.
+                            </doctor_profiles>
+                            <other_procedures>${JSON.stringify(appData.otherProcedureData)}</other_procedures>
+                            <procedure_order_rules>${JSON.stringify(appData.procedureOrderRules)}</procedure_order_rules>
+                        </data>
                     `;
 
                     // API는 대화 기록이 'user'로 시작해야 합니다.
@@ -287,21 +241,29 @@
                     const aiText = data.response || "답변을 가져오지 못했습니다.";
                     setMessages(prev => [...prev, { role: 'model', text: aiText }]);
                 } catch (e) {
-                    setMessages(prev => [...prev, { role: 'model', text: "연결 오류가 발생했습니다. API 키 및 네트워크 상태를 확인해주세요." }]);
+                    setMessages(prev => [...prev, { role: 'model', text: "오류가 발생했습니다. 서버가 실행 중인지, API 키가 유효한지 확인해주세요." }]);
                 } finally {
                     setIsLoading(false);
                 }
             };
 
+            // 데이터 로딩 중일 때 로딩 화면 표시
+            if (isDataLoading) {
+                return <div className="p-8 text-center text-slate-500">데이터를 불러오는 중입니다...</div>;
+            }
+
             return (
                 <div className="p-4 md:p-8 max-w-7xl mx-auto">
-                    <header className="mb-8 border-b pb-4 flex justify-between items-center">
-                        <div>
-                            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                                <Icon name="activity" className="text-indigo-600 w-6 h-6" />
-                                어레인지 통합 관제 보드 <span className="text-slate-400 font-normal text-sm">Ver 35.4 (Hotfix)</span>
-                            </h1>
-                            <p className="text-slate-500 text-sm mt-1">10초 단위 반올림 및 최신 데이터 적용</p>
+                    <header className="mb-6">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                                    <Icon name="activity" className="text-indigo-500 w-6 h-6" />
+                                    어레인지 통합 관제 보드
+                                </h1>
+                                <p className="text-slate-500 text-sm mt-1">데이터 기반 시술 시간 및 순서 최적화 대시보드</p>
+                            </div>
+                            <span className="text-xs font-bold bg-indigo-100 text-indigo-600 px-2.5 py-1 rounded-full">{appData.patchNotes[0].version}</span>
                         </div>
                     </header>
 
@@ -311,7 +273,7 @@
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
                                 className={`px-4 py-2 rounded-lg font-bold transition-all whitespace-nowrap ${
-                                    activeTab === tab ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-slate-600 border'
+                                    activeTab === tab ? 'bg-indigo-500 text-white shadow-md' : 'bg-white text-slate-500 border'
                                 }`}
                             >
                                 {tab === 'genmac' ? '⚡ 젠맥' : tab === 'other' ? '💉 젠맥 외 시술' : <span className="flex items-center gap-1.5"><Icon name="droplet" className="w-4 h-4" /> 페필이</span>}
@@ -319,187 +281,204 @@
                         ))}
                     </div>
 
-                    {activeTab === 'genmac' && (
-                        <div className="space-y-6">
-                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                                <div className="p-4 bg-slate-50 border-b flex justify-between items-center">
-                                    <h3 className="font-bold flex items-center gap-2"><Icon name="file-text" className="w-4 h-4"/> 의료진별 실제 소요 시간표</h3>
-                                    <span className="text-xs text-indigo-600 font-bold bg-indigo-50 px-2 py-1 rounded">10초 단위 정렬됨</span>
-                                </div>
-                                <div className="overflow-x-auto text-sm">
-                                    <table className="w-full text-center">
-                                        <thead className="bg-slate-100 font-bold">
-                                            <tr>
-                                                <th className="p-3 text-left pl-6">시술 항목</th>
-                                                <th className="p-3">Base</th>
-                                                {doctorProfiles.map(doc => (
-                                                    <th key={doc.id} className="p-3" style={{ color: doc.color }}>{doc.name}</th>
-                                                ))}
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y">
-                                            <tr className="bg-slate-50 text-xs font-bold text-slate-400"><td colSpan={7} className="p-2 text-left pl-4">얼굴 제모</td></tr>
-                                            {faceLaserData.map((item, i) => (
-                                                <tr key={i} className="hover:bg-slate-50">
-                                                    <td className="p-3 text-left pl-6 font-medium">{item.name}</td>
-                                                    <td className="p-3 text-slate-400">{formatTime(item.time)}</td>
-                                                    {doctorProfiles.map(doc => (
-                                                        <td key={doc.id} className={`p-3 font-bold ${doc.id.includes('peak') ? 'text-red-500' : ''}`}>
-                                                            {formatTime(calculateTime(item, doc))}
-                                                        </td>
-                                                    ))}
-                                                </tr>
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        <main className="lg:col-span-3 space-y-6">
+                            {activeTab === 'genmac' && (
+                                <div className="space-y-6">
+                                    <div className="bg-white p-4 rounded-xl border">
+                                        <h4 className="font-bold text-slate-800 flex items-center gap-2 mb-3">
+                                            <Icon name="users" className="w-4 h-4"/> 의료진 필터
+                                        </h4>
+                                        <div className="flex flex-wrap gap-2">
+                                            {appData.doctorProfiles.map(doc => (
+                                                <button
+                                                    key={doc.id}
+                                                    onClick={() => handleDoctorToggle(doc.id)}
+                                                    className={`px-3 py-1.5 text-sm font-bold rounded-full transition-all ${
+                                                        selectedDoctors.includes(doc.id)
+                                                    ? 'text-white shadow-sm'
+                                                    : 'bg-white border border-slate-200 text-slate-500 hover:bg-slate-50'
+                                                    }`}
+                                                    style={{ backgroundColor: selectedDoctors.includes(doc.id) ? doc.color : undefined }}
+                                                >
+                                                    {doc.name}
+                                                </button>
                                             ))}
-                                            <tr className="bg-slate-50 text-xs font-bold text-slate-400"><td colSpan={7} className="p-2 text-left pl-4">바디 제모</td></tr>
-                                            {bodyLaserData.map((item, i) => (
-                                                <tr key={i} className="hover:bg-slate-50">
-                                                    <td className="p-3 text-left pl-6 font-medium">{item.name}</td>
-                                                    <td className="p-3 text-slate-400">{formatTime(item.time)}</td>
-                                                    {doctorProfiles.map(doc => (
-                                                        <td key={doc.id} className="p-3 font-bold">
-                                                            {formatTime(calculateTime(item, doc))}
-                                                        </td>
-                                                    ))}
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                                <div className="p-4 bg-slate-50 border-b">
-                                    <h3 className="font-bold flex items-center gap-2"><Icon name="bar-chart-2" className="w-4 h-4"/> 의료진별 젠맥 시술 시간 비교</h3>
-                                </div>
-                                <div className="p-4 pt-8 h-[450px]">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 70 }}>
-                                            <CartesianGrid strokeDasharray="3 3" />
-                                            <XAxis dataKey="name" tick={{fontSize: 11}} angle={-45} textAnchor="end" interval={0} />
-                                            <YAxis label={{ value: '시간(초)', angle: -90, position: 'insideLeft' }} />
-                                            <Tooltip formatter={(value) => `${formatTime(value)}`} />
-                                            <Legend wrapperStyle={{ bottom: 10 }} />
-                                            {doctorProfiles.map(doc => (
-                                                <Bar key={doc.id} dataKey={doc.id} name={doc.name} fill={doc.color} />
-                                            ))}
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="bg-orange-50 border border-orange-200 p-4 rounded-xl">
-                                    <h4 className="font-bold text-orange-800 flex items-center gap-2 mb-2"><Icon name="users" className="w-4 h-4"/> 신환 / DB 유입</h4>
-                                    <p className="text-sm">시술 전 주의사항 안내를 위해 <span className="font-bold text-orange-600">+1분</span> 추가 배정</p>
-                                </div>
-                                <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl">
-                                    <h4 className="font-bold text-blue-800 flex items-center gap-2 mb-2"><Icon name="clock" className="w-4 h-4"/> 재진 고객</h4>
-                                    <p className="text-sm">추가 설명 없이 위 시간표대로 <span className="font-bold text-blue-600 text-lg">즉시 시술</span> 진행</p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {activeTab === 'other' && (
-                        <div className="space-y-8">
-                             {['간호팀', '피부팀'].map(team => (
-                                <div key={team} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                                    <div className="p-4 bg-slate-50 border-b">
-                                        <h3 className="font-bold flex items-center gap-2"><Icon name="bar-chart-3" className="w-4 h-4" /> {team} 시술 시간 분석</h3>
+                                        </div>
                                     </div>
-                                    {/* Chart */}
-                                    <div className="p-6 border-b">
-                                        <div style={{ height: `${60 + otherProcedureData.filter(p => p.team === team).length * 35}px` }}>
+                                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                                        <div className="p-4 bg-slate-50 border-b flex justify-between items-center">
+                                            <h3 className="font-bold flex items-center gap-2"><Icon name="file-text" className="w-4 h-4"/> 의료진별 실제 소요 시간표</h3>
+                                            <span className="text-xs text-indigo-600 font-bold bg-indigo-50 px-2 py-1 rounded">10초 단위 정렬됨</span>
+                                        </div>
+                                        <div className="overflow-x-auto text-sm">
+                                            <table className="w-full text-center">
+                                                <thead className="bg-slate-100 font-bold">
+                                                    <tr>
+                                                        <th className="p-3 text-left pl-6">시술 항목</th>
+                                                        <th className="p-3">Base</th>
+                                                        {filteredDoctors.map(doc => (
+                                                            <th key={doc.id} className="p-3" style={{ color: doc.color }}>{doc.name}</th>
+                                                        ))}
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y">
+                                                    <tr className="bg-slate-50 text-xs font-bold text-slate-400"><td colSpan={7} className="p-2 text-left pl-4">얼굴 제모</td></tr>
+                                                    {appData.faceLaserData.map((item, i) => (
+                                                        <tr key={i} className="hover:bg-slate-50">
+                                                            <td className="p-3 text-left pl-6 font-medium">{item.name}</td>
+                                                            <td className="p-3 text-slate-400">{formatTime(item.time)}</td>
+                                                            {filteredDoctors.map(doc => (
+                                                                <td key={doc.id} className={`p-3 font-bold ${doc.id.includes('peak') ? 'text-red-500' : ''}`}>
+                                                                    {formatTime(calculateTime(item, doc))}
+                                                                </td>
+                                                            ))}
+                                                        </tr>
+                                                    ))}
+                                                    <tr className="bg-slate-50 text-xs font-bold text-slate-400"><td colSpan={7} className="p-2 text-left pl-4">바디 제모</td></tr>
+                                                    {appData.bodyLaserData.map((item, i) => (
+                                                        <tr key={i} className="hover:bg-slate-50">
+                                                            <td className="p-3 text-left pl-6 font-medium">{item.name}</td>
+                                                            <td className="p-3 text-slate-400">{formatTime(item.time)}</td>
+                                                            {filteredDoctors.map(doc => (
+                                                                <td key={doc.id} className="p-3 font-bold">
+                                                                    {formatTime(calculateTime(item, doc))}
+                                                                </td>
+                                                            ))}
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                                        <div className="p-4 bg-slate-50 border-b">
+                                            <h3 className="font-bold flex items-center gap-2"><Icon name="bar-chart-2" className="w-4 h-4"/> 의료진별 젠맥 시술 시간 비교</h3>
+                                        </div>
+                                        <div className="p-4 pt-8 h-[450px]">
                                             <ResponsiveContainer width="100%" height="100%">
-                                                <ComposedChart data={otherProcedureData.filter(p => p.team === team)} layout="vertical" margin={{left: 180, right: 20}}>
+                                                <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 70 }}>
                                                     <CartesianGrid strokeDasharray="3 3" />
-                                                    <XAxis type="number" label={{ value: '시간(분)', position: 'insideBottom', offset: -5 }} />
-                                                    <YAxis dataKey="name" type="category" width={180} tick={{fontSize: 11}} interval={0} />
-                                                    <Tooltip formatter={(value) => `${value}분`} />
-                                                    <Legend wrapperStyle={{ top: -10, right: 0 }} />
-                                                    <Bar dataKey="anesthesia" name="마취" stackId="a" fill="#fca5a5" barSize={15} />
-                                                    <Bar dataKey="procedure" name="시술" stackId="a" fill="#60a5fa" barSize={15} />
-                                                </ComposedChart>
+                                                    <XAxis dataKey="name" tick={{fontSize: 11}} angle={-45} textAnchor="end" interval={0} />
+                                                    <YAxis label={{ value: '시간(초)', angle: -90, position: 'insideLeft' }} />
+                                                    <Tooltip formatter={(value) => `${formatTime(value)}`} />
+                                                    <Legend wrapperStyle={{ bottom: 10 }} />
+                                                    {filteredDoctors.map(doc => (
+                                                        <Bar key={doc.id} dataKey={doc.id} name={doc.name} fill={doc.color} />
+                                                    ))}
+                                                </BarChart>
                                             </ResponsiveContainer>
                                         </div>
                                     </div>
-                                    {/* Table */}
-                                    <div className="overflow-x-auto text-sm">
-                                        <table className="w-full">
-                                            <thead className="bg-slate-100 font-bold">
-                                                <tr>
-                                                    <th className="p-3 text-left pl-6">시술명</th>
-                                                    <th className="p-3">마취(분)</th>
-                                                    <th className="p-3">시술(분)</th>
-                                                    <th className="p-3 text-left">참고</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y">
-                                                {otherProcedureData.filter(p => p.team === team).map((item, i) => (
-                                                    <tr key={i} className="hover:bg-slate-50">
-                                                        <td className="p-3 text-left pl-6 font-medium">{item.name}</td>
-                                                        <td className="p-3 text-center">{item.anesthesia > 0 ? item.anesthesia : 'X'}</td>
-                                                        <td className="p-3 text-center font-bold">{item.procedure > 0 ? item.procedure : '문의'}</td>
-                                                        <td className="p-3 text-slate-500">{item.note}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
                                 </div>
-                             ))}
-                             <div className="h-[400px] hidden">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <ComposedChart data={otherProcedureData} layout="vertical" margin={{left: 40}}>
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis type="number" />
-                                        <YAxis dataKey="name" type="category" width={100} tick={{fontSize: 12}} />
-                                        <Tooltip />
-                                    </ComposedChart>
-                                </ResponsiveContainer>
-                             </div>
-                        </div>
-                    )}
+                            )}
 
-                    {activeTab === 'ai' && (
-                        <div className="bg-white rounded-xl shadow-lg border h-[600px] flex flex-col overflow-hidden">
-                            <div className="p-4 bg-indigo-600 text-white flex justify-between items-center font-bold">
-                                <div className="flex items-center gap-2">
-                                    <Icon name="droplet" className="w-5 h-5"/> 페필이
-                                </div>
-                                <button onClick={() => handleExportChat(messages)} title="대화 내용 저장" className="text-xs bg-white/20 hover:bg-white/30 p-1.5 rounded-md transition-colors">
-                                    <Icon name="download" className="w-4 h-4"/>
-                                </button>
-                            </div>
-                            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
-                                {messages.map((msg, i) => (
-                                     <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                        {msg.role === 'user' ? (
-                                            <div className="max-w-[80%] p-3 rounded-xl text-sm bg-indigo-600 text-white whitespace-pre-wrap">
-                                                {msg.text}
+                            {activeTab === 'other' && (
+                                <div className="space-y-8">
+                                    {['간호팀', '피부팀'].map(team => (
+                                        <div key={team} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                                            <div className="p-4 bg-slate-50 border-b">
+                                                <h3 className="font-bold flex items-center gap-2"><Icon name="bar-chart-3" className="w-4 h-4" /> {team} 시술 시간 분석</h3>
                                             </div>
-                                        ) : (
-                                            <div 
-                                                className="ai-message-bubble max-w-[80%] p-3 rounded-xl text-sm bg-white border shadow-sm"
-                                                dangerouslySetInnerHTML={{ __html: window.marked ? window.marked.parse(msg.text) : msg.text.replace(/\n/g, '<br/>') }}
-                                            />
-                                        )}
+                                            <div className="p-6 border-b">
+                                                <div style={{ height: `${60 + appData.otherProcedureData.filter(p => p.team === team).length * 35}px` }}>
+                                                    <ResponsiveContainer width="100%" height="100%">
+                                                        <ComposedChart data={appData.otherProcedureData.filter(p => p.team === team)} layout="vertical" margin={{left: 180, right: 20}}>
+                                                            <CartesianGrid strokeDasharray="3 3" />
+                                                            <XAxis type="number" label={{ value: '시간(분)', position: 'insideBottom', offset: -5 }} />
+                                                            <YAxis dataKey="name" type="category" width={180} tick={{fontSize: 11}} interval={0} />
+                                                            <Tooltip formatter={(value) => `${value}분`} />
+                                                            <Legend wrapperStyle={{ top: -10, right: 0 }} />
+                                                            <Bar dataKey="anesthesia" name="마취" stackId="a" fill="#fca5a5" barSize={15} />
+                                                            <Bar dataKey="procedure" name="시술" stackId="a" fill="#60a5fa" barSize={15} />
+                                                        </ComposedChart>
+                                                    </ResponsiveContainer>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {activeTab === 'ai' && (
+                                <div className="bg-white rounded-xl shadow-lg border h-[600px] flex flex-col overflow-hidden">
+                                    <div className="p-4 bg-indigo-500 text-white flex justify-between items-center font-bold">
+                                        <div className="flex items-center gap-2">
+                                            <Icon name="droplet" className="w-5 h-5"/> 페필이
+                                        </div>
+                                        <button onClick={() => handleExportChat(messages)} title="대화 내용 저장" className="text-xs bg-white/20 hover:bg-white/30 p-1.5 rounded-md transition-colors">
+                                            <Icon name="download" className="w-4 h-4"/>
+                                        </button>
                                     </div>
-                                ))}
-                                <div ref={messagesEndRef} />
+                                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
+                                        {messages.map((msg, i) => (
+                                            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                                {msg.role === 'user' ? (
+                                                    <div className="max-w-[80%] p-3 rounded-xl text-sm bg-indigo-500 text-white whitespace-pre-wrap">
+                                                        {msg.text}
+                                                    </div>
+                                                ) : (
+                                                    <div 
+                                                        className="ai-message-bubble max-w-[80%] p-3 rounded-xl text-sm bg-white border shadow-sm"
+                                                        dangerouslySetInnerHTML={{ __html: window.marked ? window.marked.parse(msg.text) : msg.text.replace(/\n/g, '<br/>') }}
+                                                    />
+                                                )}
+                                            </div>
+                                        ))}
+                                        <div ref={messagesEndRef} />
+                                    </div>
+                                    <div className="p-4 border-t flex gap-2">
+                                        <input
+                                            className="flex-1 border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-slate-100"
+                                            value={input}
+                                            onChange={e => setInput(e.target.value)}
+                                            onKeyPress={e => e.key === 'Enter' && !isLoading && handleSendMessage()}
+                                            placeholder={isLoading ? "페필이가 답변을 준비하고 있습니다..." : "무엇이든 물어보세요..."}
+                                            disabled={isLoading}
+                                        />
+                                        <button
+                                            onClick={handleSendMessage}
+                                            disabled={isLoading}
+                                            className="bg-indigo-500 text-white w-20 h-10 flex items-center justify-center rounded-lg px-4 font-bold transition-colors disabled:bg-indigo-300 disabled:cursor-not-allowed"
+                                        >
+                                            {isLoading ? (
+                                                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                                            ) : '전송'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </main>
+                        <aside className="lg:col-span-1 space-y-6">
+                            <div className="bg-white p-4 rounded-xl border">
+                                <h4 className="font-bold text-slate-800 flex items-center gap-2 mb-4">
+                                    <Icon name="history" className="w-4 h-4"/> 패치 노트
+                                </h4>
+                                <div className="space-y-4">
+                                    {appData.patchNotes.map((patch, index) => (
+                                        <div key={index}>
+                                            <div className="flex justify-between items-center mb-1.5">
+                                                <span className="font-bold text-indigo-500">{patch.version}</span>
+                                                <span className="text-xs text-slate-400">{patch.date}</span>
+                                            </div>
+                                            <ul className="list-disc list-inside space-y-1 text-sm text-slate-600">
+                                                {patch.notes.map((note, i) => <li key={i}>{note}</li>)}
+                                            </ul>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                            <div className="p-4 border-t flex gap-2">
-                                <input 
-                                    className="flex-1 border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    value={input}
-                                    onChange={e => setInput(e.target.value)}
-                                    onKeyPress={e => e.key === 'Enter' && handleSendMessage()}
-                                    placeholder="무엇이든 물어보세요..."
-                                />
-                                <button onClick={handleSendMessage} className="bg-indigo-600 text-white p-2 rounded-lg px-4 font-bold">전송</button>
+                            <div className="bg-white border border-slate-200 p-4 rounded-xl">
+                                <h4 className="font-bold text-slate-800 flex items-center gap-2 mb-2"><Icon name="users" className="w-4 h-4 text-orange-500"/> 신환 / DB 유입</h4>
+                                <p className="text-sm text-slate-600">시술 전 주의사항 안내를 위해 <span className="font-bold text-orange-500">+1분</span> 추가 배정</p>
                             </div>
-                        </div>
-                    )}
+                            <div className="bg-white border border-slate-200 p-4 rounded-xl">
+                                <h4 className="font-bold text-slate-800 flex items-center gap-2 mb-2"><Icon name="clock" className="w-4 h-4 text-blue-500"/> 재진 고객</h4>
+                                <p className="text-sm text-slate-600">추가 설명 없이 위 시간표대로 <span className="font-bold text-blue-500 text-lg">즉시 시술</span> 진행</p>
+                            </div>
+                        </aside>
+                    </div>
                 </div>
             );
         }

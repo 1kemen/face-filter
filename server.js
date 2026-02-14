@@ -26,13 +26,23 @@ app.post('/api/chat', async (req, res) => {
   try {
     // 클라이언트에서 보낸 메시지와 시스템 프롬프트를 가져옵니다.
     const { messages, systemPrompt } = req.body;
-    console.log('Received conversation history. Length:', messages.length);
+    const userQuery = messages[messages.length - 1].content; // 사용자의 마지막 질문 추출
+    console.log('Received User Query:', userQuery);
+
+    // --- RAG 단계 (개념) ---
+    // 1. Vector DB에서 사용자 질문과 가장 관련 높은 지식 문서를 검색합니다.
+    // const retrievedDocs = await vectorStore.similaritySearch(userQuery, 3); // 예: 가장 관련있는 3개 문서 검색
+    // const contextFromDocs = retrievedDocs.map(doc => doc.pageContent).join('\n\n');
+    
+    // 2. 검색된 문서 내용을 바탕으로 AI에게 전달할 최종 프롬프트를 재구성합니다.
+    const finalSystemPrompt = `당신은 병원 운영 AI 어시스턴트입니다. 아래 [참고 자료]를 바탕으로 사용자의 질문에 답변하세요. 자료에 없는 내용은 추측하지 마세요.\n\n[참고 자료]\n${systemPrompt}\n\n---`;
+    // 실제 RAG 구현 시에는 systemPrompt 대신 contextFromDocs를 사용하게 됩니다.
 
     // OpenAI API를 호출하여 채팅 응답을 생성합니다.
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo", // 또는 "gpt-4" 등 사용 가능한 모델
       messages: [
-        { role: "system", content: systemPrompt }, // AI의 역할과 맥락을 정의하는 시스템 메시지
+        { role: "system", content: finalSystemPrompt }, // RAG로 보강된 시스템 프롬프트
         ...messages                                // 사용자와 AI가 주고받은 전체 대화 내역
       ],
     });
