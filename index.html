@@ -263,6 +263,7 @@
                     const aiText = data.response || "답변을 가져오지 못했습니다.";
                     setMessages(prev => [...prev, { role: 'model', text: aiText }]);
                 } catch (e) {
+                    console.error("An error occurred in handleSendMessage:", e); // 디버깅을 위한 전체 에러 로그
                     // 오류의 종류에 따라 더 구체적인 메시지를 표시합니다.
                     const errorMessage = e.message.includes('Failed to fetch') 
                         ? "서버에 연결할 수 없습니다. 'node server.js'가 실행 중인지 확인해주세요."
