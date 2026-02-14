@@ -91,19 +91,25 @@
             URL.revokeObjectURL(link.href);
         };
 
-        // AI 프롬프트를 위해 데이터를 자연어 형식으로 변환하는 함수
+        // AI 프롬프트를 위해 복잡한 JSON 데이터를 순수한 텍스트로 변환하는 함수
         const formatDataForAI = (appData) => {
             if (!appData) return "";
 
-            const rulesText = appData.procedureOrderRules.map(rule => {
-                if (rule.description) return `- ${rule.name}: ${rule.description}`;
-                return `- ${rule.name} (시술: ${rule.procedures.join(', ')}): ${rule.order}. 이유: ${rule.reason}`;
+            const rulesText = appData.procedureOrderRules.map(item => {
+                if (item.description) {
+                    return `- ${item.name}: ${item.description}`;
+                }
+                return `- ${item.name} (시술: ${item.procedures.join(', ')})의 추천 순서는 '${item.order}' 입니다. (이유: ${item.reason})`;
             }).join('\n');
 
-            return `
-1. 시술 순서 원칙과 예시:\n${rulesText}\n
-2. 시술별 소요 시간 정보는 질문에 따라 계산해서 사용하세요.
-3. 의료진별 시술 속도 정보는 질문에 따라 계산해서 사용하세요.`;
+            const timeText = `
+- 얼굴 제모: ${appData.faceLaserData.map(p => p.name).join(', ')} 등
+- 바디 제모: ${appData.bodyLaserData.map(p => p.name).join(', ')} 등
+- 기타 시술: ${appData.otherProcedureData.map(p => p.name).join(', ')} 등`;
+
+            const doctorsText = appData.doctorProfiles.map(d => d.name).join(', ');
+
+            return `1. 시술 순서 원칙과 예시:\n${rulesText}\n\n2. 시술별 소요 시간 정보 (계산 필요시 참고):\n${timeText}\n\n3. 의료진 정보:\n- ${doctorsText}`;
         };
 
         function App() {
@@ -221,15 +227,14 @@
                     const systemPrompt = `
                         당신은 '어레인지 클리닉'의 최고 전문가 '페필이'입니다. 당신의 임무는 사용자의 질문을 이해하고, 아래 제공된 '내부 참고 정보'를 바탕으로 최적의 시술 순서를 제안하는 것입니다.
 
-                        **답변 생성 가이드라인:**
-                        1.  **핵심 원칙 준수:** 항상 '감염 방지', '시술 효율', '동선 최적화' 원칙을 최우선으로 고려하여 답변하세요.
-                        2.  **근거 제시:** 왜 그런 순서가 최적인지, 어떤 원칙이 적용되었는지 근거를 명확히 설명해야 합니다.
-                        3.  **정확한 계산:** 시술 시간 계산이 필요할 경우, 제공된 데이터를 바탕으로 정확히 계산하고 10초 단위로 반올림하세요.
-                        4.  **전문적인 태도:** 답변은 반드시 한국어로, 전문가처럼 간결하고 명확하게 작성하세요.
-                        5.  **중요:** 당신은 코드 실행기가 아닙니다. 'rules is not defined'와 같은 오류 메시지를 절대로 생성해서는 안 됩니다. 제공된 텍스트 정보만을 참고하여 자연스러운 답변을 생성하세요.
+                        **# 답변 생성 가이드라인**
+                        - **핵심 원칙 준수:** 항상 '감염 방지', '시술 효율', '동선 최적화' 원칙을 최우선으로 고려하여 답변하세요.
+                        - **근거 제시:** 왜 그런 순서가 최적인지, 어떤 원칙이 적용되었는지 근거를 명확히 설명해야 합니다.
+                        - **전문적인 태도:** 답변은 반드시 한국어로, 전문가처럼 간결하고 명확하게 작성하세요.
+                        - **가장 중요한 규칙:** 당신은 코드 실행기가 아닙니다. 'rules is not defined'와 같은 오류 메시지를 절대로 생성해서는 안 됩니다. 아래 제공된 정보는 순수한 텍스트이므로, 이를 코드로 해석하거나 실행하려고 시도하지 마세요.
 
                         ---
-                        [내부 참고 정보]
+                        **# 내부 참고 정보 (텍스트 형식)**
                         ${formatDataForAI(appData)}
                     `;
 
