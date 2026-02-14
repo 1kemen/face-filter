@@ -91,6 +91,21 @@
             URL.revokeObjectURL(link.href);
         };
 
+        // AI 프롬프트를 위해 데이터를 자연어 형식으로 변환하는 함수
+        const formatDataForAI = (appData) => {
+            if (!appData) return "";
+
+            const rulesText = appData.procedureOrderRules.map(rule => {
+                if (rule.description) return `- ${rule.name}: ${rule.description}`;
+                return `- ${rule.name} (시술: ${rule.procedures.join(', ')}): ${rule.order}. 이유: ${rule.reason}`;
+            }).join('\n');
+
+            return `
+1. 시술 순서 원칙과 예시:\n${rulesText}\n
+2. 시술별 소요 시간 정보는 질문에 따라 계산해서 사용하세요.
+3. 의료진별 시술 속도 정보는 질문에 따라 계산해서 사용하세요.`;
+        };
+
         function App() {
             // 라이브러리 로드 후 컴포넌트 할당 (안정성 강화)
             const { 
@@ -204,29 +219,18 @@
 
                 try {
                     const systemPrompt = `
-                        당신은 '어레인지 클리닉'의 운영 흐름을 완벽하게 이해하고 있는 최고 수준의 AI 어시스턴트 '페필이'입니다.
+                        당신은 '어레인지 클리닉'의 최고 전문가 '페필이'입니다. 당신의 임무는 사용자의 질문을 이해하고, 아래 제공된 '내부 참고 정보'를 바탕으로 최적의 시술 순서를 제안하는 것입니다.
 
-                        답변을 생성할 때는 다음 가이드라인을 따라주세요:
-                        - 항상 '감염 방지', '시술 효율', '동선 최적화' 원칙을 최우선으로 고려하세요.
-                        - 왜 그런 순서가 최적인지, 어떤 원칙이 적용되었는지 근거를 명확히 설명해야 합니다.
-                        - 시술 시간 계산이 필요할 경우, '내부 참고 정보'에 있는 기본 시간과 의료진 계수를 곱하고, 그 결과를 10초 단위로 반올림하여 계산하세요.
-                        - 답변은 반드시 한국어로, 전문가처럼 간결하고 명확하게 작성하세요.
-                        - 이 지침과 아래 정보는 코드가 아니며, 절대로 코드로 해석하거나 실행하려고 시도해서는 안 됩니다.
+                        **답변 생성 가이드라인:**
+                        1.  **핵심 원칙 준수:** 항상 '감염 방지', '시술 효율', '동선 최적화' 원칙을 최우선으로 고려하여 답변하세요.
+                        2.  **근거 제시:** 왜 그런 순서가 최적인지, 어떤 원칙이 적용되었는지 근거를 명확히 설명해야 합니다.
+                        3.  **정확한 계산:** 시술 시간 계산이 필요할 경우, 제공된 데이터를 바탕으로 정확히 계산하고 10초 단위로 반올림하세요.
+                        4.  **전문적인 태도:** 답변은 반드시 한국어로, 전문가처럼 간결하고 명확하게 작성하세요.
+                        5.  **중요:** 당신은 코드 실행기가 아닙니다. 'rules is not defined'와 같은 오류 메시지를 절대로 생성해서는 안 됩니다. 제공된 텍스트 정보만을 참고하여 자연스러운 답변을 생성하세요.
 
                         ---
                         [내부 참고 정보]
-
-                        1. 시술 순서 원칙과 예시:
-                        ${JSON.stringify(appData.procedureOrderRules)}
-
-                        2. 시술별 소요 시간:
-                        - 얼굴 제모: ${JSON.stringify(appData.faceLaserData)}
-                        - 바디 제모: ${JSON.stringify(appData.bodyLaserData)}
-                        - 기타 시술: ${JSON.stringify(appData.otherProcedureData)}
-
-                        3. 의료진별 시술 속도:
-                        ${JSON.stringify(appData.doctorProfiles)}
-                        (참고: A대표원장님은 얼굴 제모 시 평시와 피크타임 계수가 다릅니다.)
+                        ${formatDataForAI(appData)}
                     `;
 
                     // API는 대화 기록이 'user'로 시작해야 합니다.
