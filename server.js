@@ -24,7 +24,7 @@ app.use(express.json());
 
 // --- 정적 파일 제공 설정 ---
 // 'public' 폴더의 모든 파일을 웹 서버의 루트 경로로 제공합니다.
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(process.cwd(), 'public')));
 
 // '/api/chat' 경로로 POST 요청이 오면 처리할 비동기 로직입니다.
 app.post('/api/chat', async (req, res) => {
@@ -55,7 +55,7 @@ app.post('/api/chat', async (req, res) => {
 // API 경로를 제외한 모든 GET 요청에 대해 index.html을 제공합니다.
 // 이는 페이지를 새로고침하거나 직접 접속했을 때 React 앱이 정상적으로 로드되게 합니다.
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(process.cwd(), 'public', 'index.html'));
 });
 
 // 지정된 포트에서 서버를 실행합니다.
