@@ -115,7 +115,8 @@
           { team: '피부팀', name: '볼뉴머 (300샷)', procedure: 10, anesthesia: 0, note: '' },
           { team: '피부팀', name: '울쎄라 (300샷)', procedure: 25, anesthesia: 30, note: '기존 데이터 기반 마취 30분 적용' },
           { team: '피부팀', name: '세르프 (300샷)', procedure: 25, anesthesia: 0, note: '' },
-          { team: '피부팀', name: '피코토닝/레이저토닝', procedure: 5, anesthesia: 0, note: '' },
+          { team: '피부팀', name: '피코토닝', procedure: 5, anesthesia: 0, note: '' },
+          { team: '피부팀', name: '레이저토닝', procedure: 5, anesthesia: 0, note: '' },
           { team: '피부팀', name: '피코줌패스', procedure: 5, anesthesia: 10, note: '' },
           { team: '피부팀', name: '제네시스', procedure: 5, anesthesia: 0, note: '마취 시간 확인 필요' },
           { team: '피부팀', name: '피코프락셀/프락셀', procedure: 5, anesthesia: 15, note: '' },
@@ -151,10 +152,48 @@
             return Math.round(rawTime / 10) * 10;
         };
 
+        // 대화 내용 내보내기 함수
+        const handleExportChat = (messages) => {
+            // 첫 인사말만 있는 경우 저장하지 않음
+            if (messages.length <= 1) {
+                alert('저장할 대화 내용이 없습니다.');
+                return;
+            }
+
+            // 파일명에 사용할 현재 날짜와 시간
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const filename = `pepily-chat-log-${year}${month}${day}-${hours}${minutes}.txt`;
+
+            // 대화 내용을 텍스트 형식으로 변환
+            let chatContent = `병원 운영 AI 매니저 '페필이' 대화 기록\n`;
+            chatContent += `저장 일시: ${year}-${month}-${day} ${hours}:${minutes}\n`;
+            chatContent += "========================================\n\n";
+
+            messages.forEach(msg => {
+                const role = msg.role === 'user' ? '사용자' : '페필이';
+                chatContent += `[${role}]\n${msg.text}\n\n----------------------------------------\n\n`;
+            });
+
+            // Blob을 생성하여 파일 다운로드 트리거
+            const blob = new Blob([chatContent], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+        };
+
         function App() {
             const [activeTab, setActiveTab] = useState('genmac');
             const [messages, setMessages] = useState([
-                { role: 'model', text: '안녕하세요! 병원 운영 AI 매니저입니다. ✨\n라이브러리 로딩 에러를 해결하고 안정성을 높였습니다. 무엇을 도와드릴까요?' }
+                { role: 'model', text: '안녕하세요! 병원 운영 AI 매니저 페필이입니다. ✨\n무엇을 도와드릴까요?' }
             ]);
             const [input, setInput] = useState('');
             const [isLoading, setIsLoading] = useState(false);
@@ -219,8 +258,17 @@
                         5. 시술 순서에 대한 질문에는 [데이터 5]를 최우선으로 참고하여 원칙과 예시를 들어 설명하세요.
                     `;
 
+                    // API는 대화 기록이 'user'로 시작해야 합니다.
+                    // 화면에 표시되는 초기 인사 메시지(model)를 API 요청에서는 제외합니다.
+                    const historyForApi = updatedMessages.filter((msg, index) => {
+                        if (index === 0 && msg.role === 'model') {
+                            return false;
+                        }
+                        return true;
+                    });
+
                     // 대화 기록을 OpenAI API 형식에 맞게 변환합니다. (role: 'model' -> 'assistant', text -> content)
-                    const apiConversationHistory = updatedMessages.map(msg => ({
+                    const apiConversationHistory = historyForApi.map(msg => ({
                         role: msg.role === 'model' ? 'assistant' : 'user',
                         content: msg.text
                     }));
@@ -266,7 +314,7 @@
                                     activeTab === tab ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-slate-600 border'
                                 }`}
                             >
-                                {tab === 'genmac' ? '⚡ 젠맥' : tab === 'other' ? '💉 젠맥 외 시술' : '🤖 AI 매니저'}
+                                {tab === 'genmac' ? '⚡ 젠맥' : tab === 'other' ? '💉 젠맥 외 시술' : <span className="flex items-center gap-1.5"><Icon name="droplet" className="w-4 h-4" /> 페필이</span>}
                             </button>
                         ))}
                     </div>
@@ -354,28 +402,28 @@
 
                     {activeTab === 'other' && (
                         <div className="space-y-8">
-                             <div className="bg-white p-6 rounded-xl border">
-                                 <h3 className="font-bold text-lg mb-4 flex items-center gap-2">시술별 마취 및 시술 시간 (분)</h3>
-                                 <div className="h-[600px]">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <ComposedChart data={otherProcedureData} layout="vertical" margin={{left: 180, right: 20}}>
-                                            <CartesianGrid strokeDasharray="3 3" />
-                                            <XAxis type="number" label={{ value: '시간(분)', position: 'insideBottom', offset: -5 }} />
-                                            <YAxis dataKey="name" type="category" width={180} tick={{fontSize: 11}} />
-                                            <Tooltip formatter={(value) => `${value}분`} />
-                                            <Legend />
-                                            <Bar dataKey="anesthesia" name="마취" stackId="a" fill="#fca5a5" barSize={15} />
-                                            <Bar dataKey="procedure" name="시술" stackId="a" fill="#60a5fa" barSize={15} />
-                                        </ComposedChart>
-                                    </ResponsiveContainer>
-                                 </div>
-                             </div>
-                             
                              {['간호팀', '피부팀'].map(team => (
                                 <div key={team} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                                     <div className="p-4 bg-slate-50 border-b">
-                                        <h3 className="font-bold flex items-center gap-2">{team} 시술 목록</h3>
+                                        <h3 className="font-bold flex items-center gap-2"><Icon name="bar-chart-3" className="w-4 h-4" /> {team} 시술 시간 분석</h3>
                                     </div>
+                                    {/* Chart */}
+                                    <div className="p-6 border-b">
+                                        <div style={{ height: `${60 + otherProcedureData.filter(p => p.team === team).length * 35}px` }}>
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <ComposedChart data={otherProcedureData.filter(p => p.team === team)} layout="vertical" margin={{left: 180, right: 20}}>
+                                                    <CartesianGrid strokeDasharray="3 3" />
+                                                    <XAxis type="number" label={{ value: '시간(분)', position: 'insideBottom', offset: -5 }} />
+                                                    <YAxis dataKey="name" type="category" width={180} tick={{fontSize: 11}} interval={0} />
+                                                    <Tooltip formatter={(value) => `${value}분`} />
+                                                    <Legend wrapperStyle={{ top: -10, right: 0 }} />
+                                                    <Bar dataKey="anesthesia" name="마취" stackId="a" fill="#fca5a5" barSize={15} />
+                                                    <Bar dataKey="procedure" name="시술" stackId="a" fill="#60a5fa" barSize={15} />
+                                                </ComposedChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                    </div>
+                                    {/* Table */}
                                     <div className="overflow-x-auto text-sm">
                                         <table className="w-full">
                                             <thead className="bg-slate-100 font-bold">
@@ -415,8 +463,13 @@
 
                     {activeTab === 'ai' && (
                         <div className="bg-white rounded-xl shadow-lg border h-[600px] flex flex-col overflow-hidden">
-                            <div className="p-4 bg-indigo-600 text-white flex items-center gap-2 font-bold">
-                                <Icon name="bot" className="w-5 h-5"/> AI 운영 매니저
+                            <div className="p-4 bg-indigo-600 text-white flex justify-between items-center font-bold">
+                                <div className="flex items-center gap-2">
+                                    <Icon name="droplet" className="w-5 h-5"/> 페필이
+                                </div>
+                                <button onClick={() => handleExportChat(messages)} title="대화 내용 저장" className="text-xs bg-white/20 hover:bg-white/30 p-1.5 rounded-md transition-colors">
+                                    <Icon name="download" className="w-4 h-4"/>
+                                </button>
                             </div>
                             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
                                 {messages.map((msg, i) => (
