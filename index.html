@@ -241,7 +241,7 @@
                     }));
 
                     // 이제 Google API가 아닌, 우리 백엔드 서버의 /api/chat 엔드포인트로 요청을 보냅니다.
-                    const response = await fetch('http://localhost:3001/api/chat', {
+                    const response = await fetch('/api/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
