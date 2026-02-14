@@ -1,6 +1,7 @@
 // .env 파일의 환경 변수를 로드합니다.
 require('dotenv').config(); 
 const OpenAI = require('openai');
+const { getKnowledgeBase, createSystemPrompt } = require('./lib/shared-logic');
 
 // 환경 변수에서 OpenAI API 키를 가져와 클라이언트를 초기화합니다.
 const openai = new OpenAI({
@@ -25,10 +26,16 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // Vercel은 자동으로 body를 파싱해줍니다.
-    const { messages, systemPrompt } = req.body;
+    // 클라이언트에서는 이제 대화 기록만 받습니다.
+    const { messages } = req.body;
     const userQuery = messages && messages.length > 0 ? messages[messages.length - 1].content : 'No query found';
     console.log('Received User Query:', userQuery);
+
+    // 서버에서 직접 내부 정보를 로드합니다.
+    const knowledgeBase = await getKnowledgeBase();
+
+    // 서버에서 직접 시스템 프롬프트를 최종적으로 구성합니다.
+    const systemPrompt = createSystemPrompt(knowledgeBase);
 
     // OpenAI API를 호출하여 채팅 응답을 생성합니다.
     const completion = await openai.chat.completions.create({
