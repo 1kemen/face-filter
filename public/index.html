@@ -21,7 +21,7 @@
     <!-- DOMPurify for sanitizing HTML -->
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.11/dist/purify.min.js"></script>
     <!-- Custom Stylesheet -->
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-slate-50">
     <div id="root"></div>
@@ -112,26 +112,13 @@
             // --- 데이터 로딩 ---
             useEffect(() => {
                 async function loadData() {
-                    // 사용자가 파일을 직접 열었는지 확인하여 혼란을 방지합니다.
-                    if (window.location.protocol === 'file:') {
-                        setDataError("잘못된 방식으로 파일을 열었습니다. 'node server.js'를 실행한 후, 웹 브라우저에서 'http://localhost:3001' 주소로 접속해주세요.");
-                        setIsDataLoading(false);
-                        return;
-                    }
-
                     try {
                         const [genmacRes, otherRes, rulesRes, patchNotesRes] = await Promise.all([
-                            fetch('/data/genmac.json'),
-                            fetch('/data/other-procedures.json'),
-                            fetch('/data/procedure-rules.json'),
-                            fetch('/data/patch-notes.json')
+                            fetch('./data/genmac.json'),
+                            fetch('./data/other-procedures.json'),
+                            fetch('./data/procedure-rules.json'),
+                            fetch('./data/patch-notes.json')
                         ]);
-
-                        // 서버가 데이터 파일을 제대로 보내줬는지 확인합니다.
-                        if (!genmacRes.ok || !otherRes.ok || !rulesRes.ok || !patchNotesRes.ok) {
-                            throw new Error("서버에서 데이터 파일을 가져오는 데 실패했습니다. 서버가 실행 중인지 확인해주세요.");
-                        }
-
                         const genmacData = await genmacRes.json();
                         const otherProcedureData = await otherRes.json();
                         const procedureOrderRules = await rulesRes.json();
@@ -140,7 +127,7 @@
                         setAppData({ ...genmacData, otherProcedureData, procedureOrderRules, patchNotes });
                     } catch (error) {
                         console.error("데이터 로딩 실패:", error);
-                        setDataError(error.message || "애플리케이션 데이터를 불러오는 데 실패했습니다. 네트워크 연결을 확인하고 페이지를 새로고침 해주세요.");
+                        setDataError("애플리케이션 데이터를 불러오는 데 실패했습니다. 네트워크 연결을 확인하고 페이지를 새로고침 해주세요.");
                     } finally {
                         setIsDataLoading(false);
                     }
