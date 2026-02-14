@@ -18,6 +18,8 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Marked.js for Markdown parsing -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- DOMPurify for sanitizing HTML -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.11/dist/purify.min.js"></script>
     <!-- Custom Stylesheet -->
     <link rel="stylesheet" href="style.css">
 </head>
@@ -137,6 +139,19 @@
                 messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
             }, [messages, activeTab]);
 
+            const handleDoctorToggle = (doctorId) => {
+                setSelectedDoctors(prev =>
+                    prev.includes(doctorId)
+                        ? prev.filter(id => id !== doctorId)
+                        : [...prev, doctorId]
+                );
+            };
+
+            const filteredDoctors = useMemo(() => {
+                if (!appData) return [];
+                return appData.doctorProfiles.filter(doc => selectedDoctors.includes(doc.id));
+            }, [appData, selectedDoctors]);
+
             const formatTime = (seconds) => {
                 const m = Math.floor(seconds / 60);
                 const s = seconds % 60;
@@ -154,20 +169,6 @@
                     });
                     return procedureTimes;
                 });
-            }, [appData, selectedDoctors]);
-
-            const handleDoctorToggle = (doctorId) => {
-                setSelectedDoctors(prev =>
-                    prev.includes(doctorId)
-                        ? prev.filter(id => id !== doctorId)
-                        : [...prev, doctorId]
-                );
-            };
-
-            const filteredDoctors = useMemo(() => {
-                if (!appData) return [];
-                // 원본 순서 유지를 위해 appData.doctorProfiles를 기준으로 필터링
-                return appData.doctorProfiles.filter(doc => selectedDoctors.includes(doc.id));
             }, [appData, selectedDoctors]);
 
             const handleSendMessage = async () => {
@@ -424,7 +425,7 @@
                                                 ) : (
                                                     <div 
                                                         className="ai-message-bubble max-w-[80%] p-3 rounded-xl text-sm bg-white border shadow-sm"
-                                                        dangerouslySetInnerHTML={{ __html: window.marked ? window.marked.parse(msg.text) : msg.text.replace(/\n/g, '<br/>') }}
+                                                        dangerouslySetInnerHTML={{ __html: window.DOMPurify && window.marked ? DOMPurify.sanitize(marked.parse(msg.text)) : msg.text.replace(/\n/g, '<br/>') }}
                                                     />
                                                 )}
                                             </div>
