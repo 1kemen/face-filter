@@ -237,11 +237,23 @@
                         })
                     });
 
+                    // 서버가 500 에러 등 비정상 응답을 보냈는지 확인합니다.
+                    if (!response.ok) {
+                        // 서버가 보낸 JSON 에러 메시지를 우선적으로 사용합니다.
+                        const errorData = await response.json().catch(() => null);
+                        const serverMessage = errorData?.response || `서버에서 오류가 발생했습니다 (상태 코드: ${response.status}).`;
+                        throw new Error(serverMessage);
+                    }
+
                     const data = await response.json();
                     const aiText = data.response || "답변을 가져오지 못했습니다.";
                     setMessages(prev => [...prev, { role: 'model', text: aiText }]);
                 } catch (e) {
-                    setMessages(prev => [...prev, { role: 'model', text: "오류가 발생했습니다. 서버가 실행 중인지, API 키가 유효한지 확인해주세요." }]);
+                    // 오류의 종류에 따라 더 구체적인 메시지를 표시합니다.
+                    const errorMessage = e.message.includes('Failed to fetch') 
+                        ? "서버에 연결할 수 없습니다. 'node server.js'가 실행 중인지 확인해주세요."
+                        : e.message;
+                    setMessages(prev => [...prev, { role: 'model', text: `오류: ${errorMessage}` }]);
                 } finally {
                     setIsLoading(false);
                 }
