@@ -1,4 +1,5 @@
 const rules = require('./public/data/procedure-rules.json');
+const patchNotes = require('./public/data/patch-notes.json');
 
 // Knowledge Base 데이터를 캐싱할 변수
 let knowledgeBaseCache = null;
@@ -11,11 +12,25 @@ async function getKnowledgeBase() {
 
     try {
         // 파싱된 결과를 텍스트로 변환하여 캐시에 저장
-        knowledgeBaseCache = rules.map(item => {
+        const rulesText = rules.map(item => {
             if (item.description) return `- ${item.name}: ${item.description}`;
             if (item.procedures) return `- ${item.name} (시술: ${item.procedures.join(', ')})의 추천 순서는 '${item.order}' 입니다. (이유: ${item.reason})`;
             return null; // 규칙에 맞지 않는 항목은 null로 처리
         }).filter(Boolean).join('\n'); // null 값을 걸러내고 문자열로 합칩니다.
+
+        const patchNotesText = patchNotes.map(patch => {
+            const notes = patch.notes.map(note => `  - ${note}`).join('\n');
+            return `- 버전 ${patch.version} (${patch.date}):\n${notes}`;
+        }).join('\n\n');
+
+        // 두 정보를 결합하여 최종 Knowledge Base를 구성합니다.
+        knowledgeBaseCache = `
+# 시술 원칙 및 조합 예시
+${rulesText}
+
+# 최신 업데이트 내역 (패치노트)
+${patchNotesText}
+        `.trim();
 
         // --- 디버깅을 위한 로그 추가 ---
         console.log("--- Generated Knowledge Base ---");
