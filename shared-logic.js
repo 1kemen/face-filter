@@ -1,5 +1,5 @@
-const rules = require('./public/data/procedure-rules.json');
-const patchNotes = require('./public/data/patch-notes.json');
+const rules = require('./_data/procedure-rules.json');
+const patchNotes = require('./_data/patch-notes.json');
 
 // Knowledge Base 데이터를 캐싱할 변수
 let knowledgeBaseCache = null;

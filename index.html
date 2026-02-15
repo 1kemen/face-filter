@@ -122,24 +122,19 @@
                     }
 
                     try {
-                        const [genmacRes, otherRes, rulesRes, patchNotesRes] = await Promise.all([
-                            fetch('/data/genmac.json'),
-                            fetch('/data/other-procedures.json'),
-                            fetch('/data/procedure-rules.json'),
-                            fetch('/data/patch-notes.json')
-                        ]);
+                        // 이제 모든 데이터는 단일 API 엔드포인트를 통해 가져옵니다.
+                        const response = await fetch('/api/get-data');
 
                         // 서버가 데이터 파일을 제대로 보내줬는지 확인합니다.
-                        if (!genmacRes.ok || !otherRes.ok || !rulesRes.ok || !patchNotesRes.ok) {
+                        if (!response.ok) {
                             throw new Error("서버에서 데이터 파일을 가져오는 데 실패했습니다. 서버가 실행 중인지 확인해주세요.");
                         }
 
-                        const genmacData = await genmacRes.json();
-                        const otherProcedureData = await otherRes.json();
-                        const procedureOrderRules = await rulesRes.json();
-                        const patchNotes = await patchNotesRes.json();
-                        setSelectedDoctors(genmacData.doctorProfiles.map(d => d.id)); // 필터 상태 초기화
-                        setAppData({ ...genmacData, otherProcedureData, procedureOrderRules, patchNotes });
+                        const appData = await response.json();
+
+                        // API에서 받은 데이터로 상태를 설정합니다.
+                        setSelectedDoctors(appData.doctorProfiles.map(d => d.id));
+                        setAppData(appData);
                     } catch (error) {
                         console.error("데이터 로딩 실패:", error);
                         setDataError(error.message || "애플리케이션 데이터를 불러오는 데 실패했습니다. 네트워크 연결을 확인하고 페이지를 새로고침 해주세요.");
