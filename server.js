@@ -7,7 +7,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const OpenAI = require('openai');
-const { getKnowledgeBase, createSystemPrompt } = require('./lib/shared-logic');
+const { getKnowledgeBase, createSystemPrompt } = require('./shared-logic');
 
 // 환경 변수에서 OpenAI API 키를 가져와 클라이언트를 초기화합니다.
 const openai = new OpenAI({
