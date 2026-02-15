@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>어레인지 통합 관제 보드 Ver 35.4</title>
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💧</text></svg>">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- React, ReactDOM, Prop-Types (Required for Recharts UMD) -->
@@ -21,7 +23,7 @@
     <!-- DOMPurify for sanitizing HTML -->
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.11/dist/purify.min.js"></script>
     <!-- Custom Stylesheet -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/style.css">
 </head>
 <body class="bg-slate-50">
     <div id="root"></div>
@@ -112,22 +114,30 @@
             // --- 데이터 로딩 ---
             useEffect(() => {
                 async function loadData() {
+                    // 사용자가 파일을 직접 열었는지 확인하여 혼란을 방지합니다.
+                    if (window.location.protocol === 'file:') {
+                        setDataError("잘못된 방식으로 파일을 열었습니다. 'node server.js'를 실행한 후, 웹 브라우저에서 'http://localhost:3001' 주소로 접속해주세요.");
+                        setIsDataLoading(false);
+                        return;
+                    }
+
                     try {
-                        const [genmacRes, otherRes, rulesRes, patchNotesRes] = await Promise.all([
-                            fetch('./data/genmac.json'),
-                            fetch('./data/other-procedures.json'),
-                            fetch('./data/procedure-rules.json'),
-                            fetch('./data/patch-notes.json')
-                        ]);
-                        const genmacData = await genmacRes.json();
-                        const otherProcedureData = await otherRes.json();
-                        const procedureOrderRules = await rulesRes.json();
-                        const patchNotes = await patchNotesRes.json();
-                        setSelectedDoctors(genmacData.doctorProfiles.map(d => d.id)); // 필터 상태 초기화
-                        setAppData({ ...genmacData, otherProcedureData, procedureOrderRules, patchNotes });
+                        // 이제 모든 데이터는 단일 API 엔드포인트를 통해 가져옵니다.
+                        const response = await fetch('/api/get-data');
+
+                        // 서버가 데이터 파일을 제대로 보내줬는지 확인합니다.
+                        if (!response.ok) {
+                            throw new Error("서버에서 데이터 파일을 가져오는 데 실패했습니다. 서버가 실행 중인지 확인해주세요.");
+                        }
+
+                        const appData = await response.json();
+
+                        // API에서 받은 데이터로 상태를 설정합니다.
+                        setSelectedDoctors(appData.doctorProfiles.map(d => d.id));
+                        setAppData(appData);
                     } catch (error) {
                         console.error("데이터 로딩 실패:", error);
-                        setDataError("애플리케이션 데이터를 불러오는 데 실패했습니다. 네트워크 연결을 확인하고 페이지를 새로고침 해주세요.");
+                        setDataError(error.message || "애플리케이션 데이터를 불러오는 데 실패했습니다. 네트워크 연결을 확인하고 페이지를 새로고침 해주세요.");
                     } finally {
                         setIsDataLoading(false);
                     }
@@ -181,45 +191,9 @@
                 setIsLoading(true);
 
                 try {
-                    const systemPrompt = `
-                        <role>
-                        당신은 '어레인지 클리닉'의 운영 흐름을 완벽하게 이해하고 있는 최고 수준의 AI 어시스턴트 '페필이'입니다.
-                        주어진 데이터를 바탕으로, 단계별 사고를 통해 가장 정확하고 전문적인 답변을 제공해야 합니다.
-                        </role>
-
-                        <instructions>
-                        1.  **질문 분석:** 사용자의 질문 의도를 명확히 파악합니다.
-                        2.  **데이터 조회:** 질문과 관련된 정보를 아래 `<data>` 섹션에서 찾습니다.
-                        3.  **규칙 적용:** 조회된 데이터에 `<rules>` 섹션의 계산법이나 순서 규칙을 적용하여 단계적으로 결론을 도출합니다.
-                        4.  **답변 생성:** 도출된 결론을 바탕으로, 한국어로 명확하고 간결하게 답변을 구성합니다. 필요시 표나 목록을 적극적으로 활용하세요.
-                        </instructions>
-
-                        <rules>
-                        -   **시간 계산 규칙:** 시술 시간 계산 시, 기본 시간(time)에 의료진의 계수(face 또는 body)를 곱하고, 그 결과를 10초 단위로 반올림합니다. (예: 24초 -> 20초, 26초 -> 30초)
-                        -   **예외 규칙:** A대표원장님 피크타임 '얼굴전체' 시술은 항상 80초입니다.
-                        -   **순서 규칙:** 시술 순서에 대한 질문에는 <procedure_order_rules> 데이터를 최우선으로 참고하여 원칙과 예시를 들어 설명합니다.
-                        </rules>
-
-                        <data>
-                            <face_laser_data>${JSON.stringify(appData.faceLaserData)}</face_laser_data>
-                            <body_laser_data>${JSON.stringify(appData.bodyLaserData)}</body_laser_data>
-                            <doctor_profiles>
-                                ${JSON.stringify(appData.doctorProfiles)}
-                                * 중요: A대표원장님은 얼굴 제모 시 평시(1.0)와 피크타임(0.8) 계수가 다릅니다. 바디 제모는 항상 0.7로 가장 빠릅니다.
-                            </doctor_profiles>
-                            <other_procedures>${JSON.stringify(appData.otherProcedureData)}</other_procedures>
-                            <procedure_order_rules>${JSON.stringify(appData.procedureOrderRules)}</procedure_order_rules>
-                        </data>
-                    `;
-
                     // API는 대화 기록이 'user'로 시작해야 합니다.
                     // 화면에 표시되는 초기 인사 메시지(model)를 API 요청에서는 제외합니다.
-                    const historyForApi = updatedMessages.filter((msg, index) => {
-                        if (index === 0 && msg.role === 'model') {
-                            return false;
-                        }
-                        return true;
-                    });
+                    const historyForApi = updatedMessages.filter((msg, index) => !(index === 0 && msg.role === 'model'));
 
                     // 대화 기록을 OpenAI API 형식에 맞게 변환합니다. (role: 'model' -> 'assistant', text -> content)
                     const apiConversationHistory = historyForApi.map(msg => ({
@@ -227,13 +201,12 @@
                         content: msg.text
                     }));
 
-                    // 이제 Google API가 아닌, 우리 백엔드 서버의 /api/chat 엔드포인트로 요청을 보냅니다.
-                    const response = await fetch('http://localhost:3001/api/chat', {
+                    // Vercel 배포 환경과 로컬 환경 모두에서 작동하는 상대 경로를 사용합니다.
+                    const response = await fetch('/api/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            messages: apiConversationHistory, // 전체 대화 기록
-                            systemPrompt: systemPrompt        // 컨텍스트 데이터
+                            messages: apiConversationHistory
                         })
                     });
 
@@ -249,6 +222,7 @@
                     const aiText = data.response || "답변을 가져오지 못했습니다.";
                     setMessages(prev => [...prev, { role: 'model', text: aiText }]);
                 } catch (e) {
+                    console.error("An error occurred in handleSendMessage:", e); // 디버깅을 위한 전체 에러 로그
                     // 오류의 종류에 따라 더 구체적인 메시지를 표시합니다.
                     const errorMessage = e.message.includes('Failed to fetch') 
                         ? "서버에 연결할 수 없습니다. 'node server.js'가 실행 중인지 확인해주세요."
