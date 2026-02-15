@@ -4,8 +4,8 @@ const OpenAI = require('openai');
 
 // --- Start of Inlined Logic ---
 // 데이터 파일을 빌드 시점에 포함시키기 위해 require를 사용합니다.
-const rules = require('../_data/procedure-rules.json');
-const patchNotes = require('../_data/patch-notes.json');
+const rules = require('../data/procedure-rules.json');
+const patchNotes = require('../data/patch-notes.json');
 
 // Knowledge Base 데이터를 캐싱할 변수
 let knowledgeBaseCache = null;

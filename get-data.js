@@ -1,9 +1,9 @@
 // 대시보드 프론트엔드에 필요한 모든 데이터를 통합하여 제공하는 API 엔드포인트입니다.
 
 // 데이터 파일을 빌드 시점에 포함시키기 위해 require를 사용합니다.
-const genmacData = require('../_data/genmac.json');
-const otherProcedureData = require('../_data/other-procedures.json');
-const patchNotes = require('../_data/patch-notes.json');
+const genmacData = require('../data/genmac.json');
+const otherProcedureData = require('../data/other-procedures.json');
+const patchNotes = require('../data/patch-notes.json');
 
 module.exports = (req, res) => {
   // CORS 헤더 설정
