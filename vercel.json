@@ -1,13 +1,5 @@
 {
   "framework": null,
-  "functions": {
-    "api/chat.js": {
-      "includeFiles": "_data/**"
-    },
-    "api/get-data.js": {
-      "includeFiles": "_data/**"
-    }
-  },
   "routes": [
     { "src": "/api/chat", "dest": "/api/chat.js" },
     { "src": "/api/get-data", "dest": "/api/get-data.js" },
