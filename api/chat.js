@@ -64,10 +64,12 @@ function createSystemPrompt(knowledgeBase) {
 }
 // --- End of Inlined Logic ---
 
-// 환경 변수에서 OpenAI API 키를 가져와 클라이언트를 초기화합니다.
+// 환경 변수에서 OpenAI API 키와 모델을 가져와 클라이언트를 초기화합니다.
+// OPENAI_MODEL: 파인튜닝 완료 후 ft:gpt-4o-mini-xxxx 값으로 교체하면 파인튜닝 모델 사용.
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+const MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
 
 // AI가 참고할 내부 정보 파일을 읽고, 자연어 텍스트로 변환하는 함수
 // 이 함수가 Vercel에 의해 API 요청 시 실행됩니다.
@@ -101,7 +103,7 @@ module.exports = async (req, res) => {
 
     // OpenAI API를 호출하여 채팅 응답을 생성합니다.
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: MODEL,
       messages: [
         { role: "system", content: systemPrompt },
         ...messages
