@@ -1,5 +1,4 @@
-const path = require('path');
-const fs = require('fs').promises;
+const rules = require('./public/data/procedure-rules.json');
 
 // Knowledge Base 데이터를 캐싱할 변수
 let knowledgeBaseCache = null;
@@ -11,16 +10,17 @@ async function getKnowledgeBase() {
     }
 
     try {
-        const rulesPath = path.join(process.cwd(), 'public', 'data', 'procedure-rules.json');
-        const rulesData = await fs.readFile(rulesPath, 'utf8');
-        const rules = JSON.parse(rulesData);
-
         // 파싱된 결과를 텍스트로 변환하여 캐시에 저장
         knowledgeBaseCache = rules.map(item => {
             if (item.description) return `- ${item.name}: ${item.description}`;
             if (item.procedures) return `- ${item.name} (시술: ${item.procedures.join(', ')})의 추천 순서는 '${item.order}' 입니다. (이유: ${item.reason})`;
             return null; // 규칙에 맞지 않는 항목은 null로 처리
         }).filter(Boolean).join('\n'); // null 값을 걸러내고 문자열로 합칩니다.
+
+        // --- 디버깅을 위한 로그 추가 ---
+        console.log("--- Generated Knowledge Base ---");
+        console.log(knowledgeBaseCache);
+        console.log("------------------------------");
 
         // 만약 파싱 후 내용이 없다면, 파일이 비어있거나 형식이 잘못된 것이므로 에러를 발생시킵니다.
         if (!knowledgeBaseCache) {
@@ -29,9 +29,9 @@ async function getKnowledgeBase() {
 
         return knowledgeBaseCache;
     } catch (error) {
-        console.error("Error reading knowledge base:", error);
+        console.error("Error processing knowledge base:", error);
         // 에러가 발생하면, AI에게 텍스트를 전달하는 대신 시스템 전체에 에러를 알립니다.
-        throw new Error('Failed to load or parse the knowledge base file.');
+        throw new Error('Failed to load or process the knowledge base file.');
     }
 }
 
