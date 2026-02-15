@@ -17,8 +17,8 @@ async function getKnowledgeBase() {
 
         // 파싱된 결과를 텍스트로 변환하여 캐시에 저장
         knowledgeBaseCache = rules.map(item => {
-            if (item.rule) return `- ${item.name}: ${item.rule}`;
-            return `- ${item.name} (시술: ${item.procedures.join(', ')})의 추천 순서는 '${item.order}' 입니다. (이유: ${item.reason})`;
+            if (item.description) return `- ${item.name}: ${item.description}`;
+            if (item.procedures) return `- ${item.name} (시술: ${item.procedures.join(', ')})의 추천 순서는 '${item.order}' 입니다. (이유: ${item.reason})`;
         }).join('\n');
     } catch (error) {
         console.error("Error reading knowledge base:", error);
