@@ -1,7 +1,7 @@
 // .env 파일의 환경 변수를 로드합니다.
 require('dotenv').config(); 
 const OpenAI = require('openai');
-const { getKnowledgeBase, createSystemPrompt } = require('./shared-logic');
+const { getKnowledgeBase, createSystemPrompt } = require('../shared-logic');
 
 // 환경 변수에서 OpenAI API 키를 가져와 클라이언트를 초기화합니다.
 const openai = new OpenAI({
