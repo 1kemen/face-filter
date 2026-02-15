@@ -1,20 +1,31 @@
 const path = require('path');
 const fs = require('fs').promises;
 
+// Knowledge Base 데이터를 캐싱할 변수
+let knowledgeBaseCache = null;
+
 async function getKnowledgeBase() {
+    // 캐시된 데이터가 있으면 즉시 반환
+    if (knowledgeBaseCache) {
+        return knowledgeBaseCache;
+    }
+
     try {
         const rulesPath = path.join(process.cwd(), 'public', 'data', 'procedure-rules.json');
         const rulesData = await fs.readFile(rulesPath, 'utf8');
         const rules = JSON.parse(rulesData);
 
-        return rules.map(item => {
-            if (item.description) return `- ${item.name}: ${item.description}`;
+        // 파싱된 결과를 텍스트로 변환하여 캐시에 저장
+        knowledgeBaseCache = rules.map(item => {
+            if (item.rule) return `- ${item.name}: ${item.rule}`;
             return `- ${item.name} (시술: ${item.procedures.join(', ')})의 추천 순서는 '${item.order}' 입니다. (이유: ${item.reason})`;
         }).join('\n');
     } catch (error) {
         console.error("Error reading knowledge base:", error);
         return "내부 정보 파일을 읽는 데 실패했습니다.";
     }
+
+    return knowledgeBaseCache;
 }
 
 function createSystemPrompt(knowledgeBase) {
