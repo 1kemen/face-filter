@@ -25,7 +25,7 @@
     <!-- Custom Stylesheet -->
     <link rel="stylesheet" href="/style.css">
 </head>
-<body class="bg-slate-50">
+<body>
     <div id="root"></div>
 
     <script type="text/babel">
@@ -267,27 +267,25 @@
 
             return (
                 <div className="p-4 md:p-8 max-w-7xl mx-auto">
-                    <header className="mb-6">
+                    <header className="mb-7">
                         <div className="flex justify-between items-start">
                             <div>
-                                <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                                    <Icon name="droplet" className="text-slate-700 w-6 h-6" />
+                                <h1 className="text-2xl font-bold flex items-center gap-2" style={{color:'var(--text-primary)'}}>
+                                    <Icon name="droplet" className="w-6 h-6" style={{color:'var(--text-secondary)'}} />
                                     페필이는어레인지마스터
                                 </h1>
-                                <p className="text-slate-500 text-sm mt-1">AI 기반 시술 순서 최적화 어시스턴트</p>
+                                <p className="text-sm mt-1" style={{color:'var(--text-secondary)'}}>AI 기반 시술 순서 최적화 어시스턴트</p>
                             </div>
-                            <span className="text-xs font-bold bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full">{appData.patchNotes[0].version}</span>
+                            <span className="badge">{appData.patchNotes[0].version}</span>
                         </div>
                     </header>
 
-                    <div className="flex gap-2 mb-6 overflow-x-auto">
+                    <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
                         {['genmac', 'other', 'ai'].map(tab => (
-                            <button 
+                            <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
-                                className={`px-4 py-2 rounded-lg font-bold transition-all whitespace-nowrap ${
-                                    activeTab === tab ? 'bg-slate-800 text-white shadow-md' : 'bg-white text-slate-500 border'
-                                }`}
+                                className={`tab-btn ${activeTab === tab ? 'active' : 'inactive'}`}
                             >
                                 {tab === 'genmac' ? '⚡ 젠맥' : tab === 'other' ? '💉 젠맥 외 시술' : <span className="flex items-center gap-1.5"><Icon name="droplet" className="w-4 h-4" /> 페필이</span>}
                             </button>
@@ -295,11 +293,11 @@
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                        <main className="lg:col-span-3 space-y-6">
+                        <main className="lg:col-span-3 space-y-5">
                             {activeTab === 'genmac' && (
-                                <div className="space-y-6">
-                                    <div className="bg-white p-4 rounded-xl border">
-                                        <h4 className="font-bold text-slate-800 flex items-center gap-2 mb-3">
+                                <div className="space-y-5">
+                                    <div className="card p-4">
+                                        <h4 className="font-bold flex items-center gap-2 mb-3" style={{color:'var(--text-primary)'}}>
                                             <Icon name="users" className="w-4 h-4"/> 의료진 필터
                                         </h4>
                                         <div className="flex flex-wrap gap-2">
@@ -309,51 +307,53 @@
                                                     <button
                                                         key={doc.id}
                                                         onClick={() => handleDoctorToggle(doc.id)}
-                                                        className={`px-3 py-1.5 text-sm font-bold rounded-full transition-all border-2 ${
-                                                            isSelected ? 'bg-white shadow-sm' : 'bg-slate-100 border-transparent hover:bg-slate-200'
-                                                        }`}
-                                                        style={{ borderColor: isSelected ? doc.color : 'transparent', color: isSelected ? doc.color : '#64748b' }}
+                                                        className="px-3 py-1.5 text-sm font-bold rounded-full transition-all"
+                                                        style={{
+                                                            border: `2px solid ${isSelected ? doc.color : 'var(--border)'}`,
+                                                            color: isSelected ? doc.color : 'var(--text-secondary)',
+                                                            background: isSelected ? `${doc.color}12` : 'var(--surface)',
+                                                        }}
                                                     >{doc.name}</button>
                                                 );
                                             })}
                                         </div>
                                     </div>
-                                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                                        <div className="p-4 bg-slate-50 border-b flex justify-between items-center">
+                                    <div className="card overflow-hidden">
+                                        <div className="card-header flex justify-between items-center">
                                             <h3 className="font-bold flex items-center gap-2"><Icon name="file-text" className="w-4 h-4"/> 의료진별 실제 소요 시간표</h3>
-                                            <span className="text-xs text-slate-600 font-bold bg-slate-100 px-2 py-1 rounded">10초 단위 정렬됨</span>
+                                            <span className="badge">10초 단위 정렬됨</span>
                                         </div>
-                                        <div className="overflow-x-auto text-sm">
-                                            <table className="w-full text-center">
-                                                <thead className="bg-slate-100 font-bold">
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-center data-table">
+                                                <thead>
                                                     <tr>
-                                                        <th className="p-3 text-left pl-6">시술 항목</th>
-                                                        <th className="p-3">Base</th>
+                                                        <th className="text-left pl-6">시술 항목</th>
+                                                        <th>Base</th>
                                                         {filteredDoctors.map(doc => (
-                                                            <th key={doc.id} className="p-3" style={{ color: doc.color }}>{doc.name}</th>
+                                                            <th key={doc.id} style={{ color: doc.color }}>{doc.name}</th>
                                                         ))}
                                                     </tr>
                                                 </thead>
-                                                <tbody className="divide-y">
-                                                    <tr className="bg-slate-50 text-xs font-bold text-slate-400"><td colSpan={7} className="p-2 text-left pl-4">얼굴 제모</td></tr>
+                                                <tbody>
+                                                    <tr className="section-row"><td colSpan={7}>얼굴 제모</td></tr>
                                                     {appData.faceLaserData.map((item, i) => (
-                                                        <tr key={i} className="hover:bg-slate-50">
-                                                            <td className="p-3 text-left pl-6 font-medium">{item.name}</td>
-                                                            <td className="p-3 text-slate-400">{formatTime(item.time)}</td>
+                                                        <tr key={i}>
+                                                            <td className="text-left pl-6 font-medium">{item.name}</td>
+                                                            <td style={{color:'var(--text-secondary)'}}>{formatTime(item.time)}</td>
                                                             {filteredDoctors.map(doc => (
-                                                                <td key={doc.id} className={`p-3 font-bold ${doc.id.includes('peak') ? 'text-red-500' : ''}`}>
+                                                                <td key={doc.id} className="font-bold" style={{color: doc.id.includes('peak') ? '#ef4444' : 'inherit'}}>
                                                                     {formatTime(calculateTime(item, doc))}
                                                                 </td>
                                                             ))}
                                                         </tr>
                                                     ))}
-                                                    <tr className="bg-slate-50 text-xs font-bold text-slate-400"><td colSpan={7} className="p-2 text-left pl-4">바디 제모</td></tr>
+                                                    <tr className="section-row"><td colSpan={7}>바디 제모</td></tr>
                                                     {appData.bodyLaserData.map((item, i) => (
-                                                        <tr key={i} className="hover:bg-slate-50">
-                                                            <td className="p-3 text-left pl-6 font-medium">{item.name}</td>
-                                                            <td className="p-3 text-slate-400">{formatTime(item.time)}</td>
+                                                        <tr key={i}>
+                                                            <td className="text-left pl-6 font-medium">{item.name}</td>
+                                                            <td style={{color:'var(--text-secondary)'}}>{formatTime(item.time)}</td>
                                                             {filteredDoctors.map(doc => (
-                                                                <td key={doc.id} className="p-3 font-bold">
+                                                                <td key={doc.id} className="font-bold">
                                                                     {formatTime(calculateTime(item, doc))}
                                                                 </td>
                                                             ))}
@@ -364,8 +364,8 @@
                                         </div>
                                     </div>
 
-                                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                                        <div className="p-4 bg-slate-50 border-b">
+                                    <div className="card overflow-hidden">
+                                        <div className="card-header">
                                             <h3 className="font-bold flex items-center gap-2"><Icon name="bar-chart-2" className="w-4 h-4"/> 의료진별 젠맥 시술 시간 비교</h3>
                                         </div>
                                         <div className="p-4 pt-8 h-[450px]">
@@ -377,7 +377,7 @@
                                                     <Tooltip formatter={(value) => `${formatTime(value)}`} />
                                                     <Legend wrapperStyle={{ bottom: 10 }} />
                                                     {filteredDoctors.map(doc => (
-                                                        <Bar key={doc.id} dataKey={doc.id} name={doc.name} fill={doc.color} />
+                                                        <Bar key={doc.id} dataKey={doc.id} name={doc.name} fill={doc.color} radius={[3,3,0,0]} />
                                                     ))}
                                                 </BarChart>
                                             </ResponsiveContainer>
@@ -387,12 +387,11 @@
                             )}
 
                             {activeTab === 'other' && (
-                                <div className="space-y-8">
+                                <div className="space-y-5">
 
-                                    {/* 주사 시술 의료진별 시간 비교 */}
                                     {appData.injectionData && appData.injectionData.length > 0 && (
-                                        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                                            <div className="p-4 bg-slate-50 border-b">
+                                        <div className="card overflow-hidden">
+                                            <div className="card-header">
                                                 <h3 className="font-bold flex items-center gap-2"><Icon name="syringe" className="w-4 h-4"/> 의료진별 주사 시술 시간 비교</h3>
                                             </div>
                                             <div className="p-4 pt-8 h-[400px]">
@@ -404,29 +403,29 @@
                                                         <Tooltip formatter={(value) => `${formatTime(value)}`} />
                                                         <Legend wrapperStyle={{ bottom: 10 }} />
                                                         {filteredDoctors.map(doc => (
-                                                            <Bar key={doc.id} dataKey={doc.id} name={doc.name} fill={doc.color} />
+                                                            <Bar key={doc.id} dataKey={doc.id} name={doc.name} fill={doc.color} radius={[3,3,0,0]} />
                                                         ))}
                                                     </BarChart>
                                                 </ResponsiveContainer>
                                             </div>
-                                            <div className="overflow-x-auto border-t">
-                                                <table className="w-full text-sm text-center">
-                                                    <thead className="bg-slate-50">
+                                            <div className="overflow-x-auto border-t" style={{borderColor:'var(--border)'}}>
+                                                <table className="w-full text-center data-table">
+                                                    <thead>
                                                         <tr>
-                                                            <th className="p-3 text-left pl-4 font-semibold">시술명</th>
-                                                            <th className="p-3 text-slate-400 font-normal">기준(초)</th>
+                                                            <th className="text-left pl-4">시술명</th>
+                                                            <th style={{color:'var(--text-secondary)', fontWeight:'normal'}}>기준</th>
                                                             {filteredDoctors.map(doc => (
-                                                                <th key={doc.id} className="p-3 font-semibold" style={{color: doc.color}}>{doc.name.split('(')[0]}</th>
+                                                                <th key={doc.id} style={{color: doc.color}}>{doc.name.split('(')[0]}</th>
                                                             ))}
                                                         </tr>
                                                     </thead>
-                                                    <tbody className="divide-y">
+                                                    <tbody>
                                                         {appData.injectionData.map((item, i) => (
-                                                            <tr key={i} className="hover:bg-slate-50">
-                                                                <td className="p-3 text-left pl-4 font-medium">{item.name}</td>
-                                                                <td className="p-3 text-slate-400">{formatTime(item.baseTimeSec)}</td>
+                                                            <tr key={i}>
+                                                                <td className="text-left pl-4 font-medium">{item.name}</td>
+                                                                <td style={{color:'var(--text-secondary)'}}>{formatTime(item.baseTimeSec)}</td>
                                                                 {filteredDoctors.map(doc => (
-                                                                    <td key={doc.id} className="p-3 font-bold" style={{color: doc.color}}>
+                                                                    <td key={doc.id} className="font-bold" style={{color: doc.color}}>
                                                                         {formatTime(calculateInjectionTime(item, doc))}
                                                                     </td>
                                                                 ))}
@@ -439,11 +438,11 @@
                                     )}
 
                                     {['간호팀', '피부팀'].map(team => (
-                                        <div key={team} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                                            <div className="p-4 bg-slate-50 border-b">
+                                        <div key={team} className="card overflow-hidden">
+                                            <div className="card-header">
                                                 <h3 className="font-bold flex items-center gap-2"><Icon name="bar-chart-3" className="w-4 h-4" /> {team} 시술 시간 분석</h3>
                                             </div>
-                                            <div className="p-6 border-b">
+                                            <div className="p-6">
                                                 <div style={{ height: `${60 + appData.otherProcedureData.filter(p => p.team === team).length * 35}px` }}>
                                                     <ResponsiveContainer width="100%" height="100%">
                                                         <ComposedChart data={appData.otherProcedureData.filter(p => p.team === team)} layout="vertical" margin={{left: 180, right: 20}}>
@@ -452,8 +451,8 @@
                                                             <YAxis dataKey="name" type="category" width={180} tick={{fontSize: 11}} interval={0} />
                                                             <Tooltip formatter={(value) => `${value}분`} />
                                                             <Legend wrapperStyle={{ top: -10, right: 0 }} />
-                                                            <Bar dataKey="anesthesia" name="마취" stackId="a" fill="#fca5a5" barSize={15} />
-                                                            <Bar dataKey="procedure" name="시술" stackId="a" fill="#60a5fa" barSize={15} />
+                                                            <Bar dataKey="anesthesia" name="마취" stackId="a" fill="#fca5a5" barSize={14} radius={[0,0,0,0]} />
+                                                            <Bar dataKey="procedure" name="시술" stackId="a" fill="#93c5fd" barSize={14} radius={[3,3,0,0]} />
                                                         </ComposedChart>
                                                     </ResponsiveContainer>
                                                 </div>
@@ -464,25 +463,25 @@
                             )}
 
                             {activeTab === 'ai' && (
-                                <div className="bg-white rounded-xl shadow-lg border h-[600px] flex flex-col overflow-hidden">
-                                    <div className="p-4 bg-slate-800 text-white flex justify-between items-center font-bold">
+                                <div className="card h-[600px] flex flex-col overflow-hidden">
+                                    <div className="chat-header">
                                         <div className="flex items-center gap-2">
                                             <Icon name="droplet" className="w-5 h-5"/> 페필이
                                         </div>
-                                        <button onClick={() => handleExportChat(messages)} title="대화 내용 저장" className="text-xs bg-white/20 hover:bg-white/30 p-1.5 rounded-md transition-colors">
+                                        <button onClick={() => handleExportChat(messages)} title="대화 내용 저장" className="p-1.5 rounded-lg transition-colors" style={{background:'rgba(255,255,255,0.15)'}}>
                                             <Icon name="download" className="w-4 h-4"/>
                                         </button>
                                     </div>
-                                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
+                                    <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{background:'var(--bg)'}}>
                                         {messages.map((msg, i) => (
                                             <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                                 {msg.role === 'user' ? (
-                                                    <div className="max-w-[80%] p-3 rounded-xl text-sm bg-slate-700 text-white whitespace-pre-wrap">
+                                                    <div className="user-message-bubble max-w-[80%] whitespace-pre-wrap">
                                                         {msg.text}
                                                     </div>
                                                 ) : (
-                                                    <div 
-                                                        className="ai-message-bubble max-w-[80%] p-3 rounded-xl text-sm bg-white border shadow-sm"
+                                                    <div
+                                                        className="ai-message-bubble max-w-[80%]"
                                                         dangerouslySetInnerHTML={{ __html: window.DOMPurify && window.marked ? DOMPurify.sanitize(marked.parse(msg.text)) : msg.text.replace(/\n/g, '<br/>') }}
                                                     />
                                                 )}
@@ -490,9 +489,9 @@
                                         ))}
                                         <div ref={messagesEndRef} />
                                     </div>
-                                    <div className="p-4 border-t flex gap-2">
+                                    <div className="p-3 flex gap-2" style={{borderTop:'1px solid var(--border)', background:'var(--surface)'}}>
                                         <input
-                                            className="flex-1 border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-slate-100"
+                                            className="chat-input flex-1"
                                             value={input}
                                             onChange={e => setInput(e.target.value)}
                                             onKeyPress={e => e.key === 'Enter' && !isLoading && handleSendMessage()}
@@ -502,42 +501,44 @@
                                         <button
                                             onClick={handleSendMessage}
                                             disabled={isLoading}
-                                            className="bg-slate-800 text-white w-20 h-10 flex items-center justify-center rounded-lg px-4 font-bold transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
+                                            className="chat-send-btn flex items-center justify-center w-20 h-[38px]"
                                         >
-                                            {isLoading ? (
-                                                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                                            ) : '전송'}
+                                            {isLoading ? <div className="spinner"/> : '전송'}
                                         </button>
                                     </div>
                                 </div>
                             )}
                         </main>
-                        <aside className="lg:col-span-1 space-y-6">
-                            <div className="bg-white p-4 rounded-xl border">
-                                <h4 className="font-bold text-slate-800 flex items-center gap-2 mb-4">
+                        <aside className="lg:col-span-1 space-y-4">
+                            <div className="card p-4">
+                                <h4 className="font-bold flex items-center gap-2 mb-4" style={{color:'var(--text-primary)'}}>
                                     <Icon name="history" className="w-4 h-4"/> 패치 노트
                                 </h4>
                                 <div className="space-y-4">
                                     {appData.patchNotes.map((patch, index) => (
                                         <div key={index}>
-                                            <div className="flex justify-between items-center mb-1">
-                                                <span className="font-bold text-slate-800">{patch.version}</span>
-                                                <span className="text-xs text-slate-400">{patch.date}</span>
+                                            <div className="flex justify-between items-center mb-1.5">
+                                                <span className="font-bold text-sm" style={{color:'var(--text-primary)'}}>{patch.version}</span>
+                                                <span className="text-xs" style={{color:'var(--text-secondary)'}}>{patch.date}</span>
                                             </div>
-                                            <ul className="list-disc list-inside space-y-1 text-sm text-slate-600">
+                                            <ul className="list-disc list-inside space-y-1 text-xs" style={{color:'var(--text-secondary)'}}>
                                                 {patch.notes.map((note, i) => <li key={i}>{note}</li>)}
                                             </ul>
                                         </div>
                                     ))}
                                 </div>
                             </div>
-                            <div className="bg-white border border-slate-200 p-4 rounded-xl">
-                                <h4 className="font-bold text-slate-800 flex items-center gap-2 mb-2"><Icon name="users" className="w-4 h-4 text-orange-500"/> 신환 / DB 유입</h4>
-                                <p className="text-sm text-slate-600">시술 전 주의사항 안내를 위해 <span className="font-bold text-orange-500">+1분</span> 추가 배정</p>
+                            <div className="card p-4">
+                                <h4 className="font-bold flex items-center gap-2 mb-2 text-sm" style={{color:'var(--text-primary)'}}>
+                                    <Icon name="users" className="w-4 h-4" style={{color:'#f97316'}}/> 신환 / DB 유입
+                                </h4>
+                                <p className="text-xs" style={{color:'var(--text-secondary)'}}>시술 전 주의사항 안내를 위해 <span className="font-bold" style={{color:'#f97316'}}>+1분</span> 추가 배정</p>
                             </div>
-                            <div className="bg-white border border-slate-200 p-4 rounded-xl">
-                                <h4 className="font-bold text-slate-800 flex items-center gap-2 mb-2"><Icon name="clock" className="w-4 h-4 text-blue-500"/> 재진 고객</h4>
-                                <p className="text-sm text-slate-600">추가 설명 없이 위 시간표대로 <span className="font-bold text-blue-500 text-lg">즉시 시술</span> 진행</p>
+                            <div className="card p-4">
+                                <h4 className="font-bold flex items-center gap-2 mb-2 text-sm" style={{color:'var(--text-primary)'}}>
+                                    <Icon name="clock" className="w-4 h-4" style={{color:'#3b82f6'}}/> 재진 고객
+                                </h4>
+                                <p className="text-xs" style={{color:'var(--text-secondary)'}}>추가 설명 없이 위 시간표대로 <span className="font-bold text-base" style={{color:'#3b82f6'}}>즉시 시술</span> 진행</p>
                             </div>
                         </aside>
                     </div>
