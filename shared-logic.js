@@ -1,5 +1,5 @@
-const rules = require('./_data/procedure-rules.json');
-const patchNotes = require('./_data/patch-notes.json');
+const fs = require('fs');
+const path = require('path');
 
 // Knowledge Base 데이터를 캐싱할 변수
 let knowledgeBaseCache = null;
@@ -11,6 +11,16 @@ async function getKnowledgeBase() {
     }
 
     try {
+        // Vercel 배포 환경에서 안정적으로 파일을 읽기 위해, 빌드 시점에 포함하는 require 대신 런타임에 직접 파일 경로를 지정하여 읽습니다.
+        const rulesPath = path.join(process.cwd(), '_data', 'procedure-rules.json');
+        const patchNotesPath = path.join(process.cwd(), '_data', 'patch-notes.json');
+
+        const rulesData = fs.readFileSync(rulesPath, 'utf8');
+        const patchNotesData = fs.readFileSync(patchNotesPath, 'utf8');
+
+        const rules = JSON.parse(rulesData);
+        const patchNotes = JSON.parse(patchNotesData);
+
         // 파싱된 결과를 텍스트로 변환하여 캐시에 저장
         const rulesText = rules.map(item => {
             if (item.description) return `- ${item.name}: ${item.description}`;
