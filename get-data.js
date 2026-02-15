@@ -11,7 +11,7 @@ module.exports = (req, res) => {
   
   try {
     // Vercel 배포 환경에서 안정적으로 파일을 읽기 위해, 런타임에 직접 파일 경로를 지정하여 읽습니다.
-    const dataPath = (fileName) => path.join(process.cwd(), '_data', fileName);
+    const dataPath = (fileName) => path.join(__dirname, '..', '_data', fileName);
     
     const genmacData = JSON.parse(fs.readFileSync(dataPath('genmac.json'), 'utf8'));
     const otherProcedureData = JSON.parse(fs.readFileSync(dataPath('other-procedures.json'), 'utf8'));
