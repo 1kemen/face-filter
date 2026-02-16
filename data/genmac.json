@@ -23,11 +23,14 @@
     { "id": "D",       "name": "D은원장님",         "face": 2.0, "body": 1.0, "injection": 1.7, "color": "#10b981" }
   ],
   "injectionData": [
-    { "name": "보톡스",          "baseTimeSec": 180, "category": "injection" },
-    { "name": "필러",            "baseTimeSec": 600, "category": "injection" },
-    { "name": "쥬베룩 볼륨",     "baseTimeSec": 900, "category": "injection" },
-    { "name": "리쥬란",          "baseTimeSec": 900, "category": "injection" },
-    { "name": "엑소좀/스킨부스터","baseTimeSec": 600, "category": "injection" },
-    { "name": "윤곽주사/조각주사","baseTimeSec": 180, "category": "injection" }
+    { "name": "보톡스",                 "baseTimeSec": 180,  "category": "injection" },
+    { "name": "필러",                   "baseTimeSec": 600,  "category": "injection" },
+    { "name": "쥬베룩 볼륨 (1vial)",    "baseTimeSec": 600,  "category": "injection" },
+    { "name": "쥬베룩 스킨 (2cc)",      "baseTimeSec": 900,  "category": "injection" },
+    { "name": "리쥬란 (2cc)",           "baseTimeSec": 900,  "category": "injection" },
+    { "name": "리투오 (5cc)",           "baseTimeSec": 600,  "category": "injection" },
+    { "name": "엑소좀",                 "baseTimeSec": 600,  "category": "injection" },
+    { "name": "스킨보톡스(더모톡신)",   "baseTimeSec": 600,  "category": "injection" },
+    { "name": "윤곽주사/조각주사",      "baseTimeSec": 180,  "category": "injection" }
   ]
 }
