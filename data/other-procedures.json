@@ -19,8 +19,8 @@
   { "team": "피부팀", "category": "레이저", "name": "레이저토닝", "procedure": 5, "anesthesia": 0, "note": "" },
   { "team": "피부팀", "category": "레이저", "name": "피코줌패스", "procedure": 5, "anesthesia": 10, "note": "" },
   { "team": "피부팀", "category": "레이저", "name": "피코프락셀/프락셀", "procedure": 5, "anesthesia": 15, "note": "" },
-  { "team": "피부팀", "category": "레이저", "name": "엑셀V (홍조)", "procedure": 3, "anesthesia": 0, "note": "" },
-  { "team": "피부팀", "category": "레이저", "name": "엑셀V", "procedure": 3, "anesthesia": 0, "note": "" },
+  { "team": "피부팀", "category": "레이저", "name": "엑셀V (홍조)", "procedure": 5, "anesthesia": 0, "note": "" },
+  { "team": "피부팀", "category": "레이저", "name": "제네시스", "procedure": 5, "anesthesia": 0, "note": "" },
   { "team": "피부팀", "category": "레이저", "name": "브이빔", "procedure": 3, "anesthesia": 0, "note": "홍조/혈관 치료" },
   { "team": "피부팀", "category": "레이저", "name": "카프리", "procedure": 7, "anesthesia": 0, "note": "" },
 
