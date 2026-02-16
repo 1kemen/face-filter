@@ -6,35 +6,107 @@ const OpenAI = require('openai');
 // 데이터 파일을 빌드 시점에 포함시키기 위해 require를 사용합니다.
 const rules = require('../data/procedure-rules.json');
 const patchNotes = require('../data/patch-notes.json');
+const genmac = require('../data/genmac.json');
+const otherProcedures = require('../data/other-procedures.json');
 
 // Knowledge Base 데이터를 캐싱할 변수
 let knowledgeBaseCache = null;
 
+function formatSec(sec) {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    if (m === 0) return `${s}초`;
+    return s === 0 ? `${m}분` : `${m}분 ${s}초`;
+}
+
 function getKnowledgeBase() {
-    // 캐시된 데이터가 있으면 즉시 반환
-    if (knowledgeBaseCache) {
-        return knowledgeBaseCache;
-    }
+    if (knowledgeBaseCache) return knowledgeBaseCache;
 
     try {
-        // 파싱된 결과를 텍스트로 변환하여 캐시에 저장
+        // 1. 시술 순서 규칙
         const rulesText = rules.map(item => {
             if (item.description) return `- ${item.name}: ${item.description}`;
             if (item.procedures) return `- ${item.name} (시술: ${item.procedures.join(', ')})의 추천 순서는 '${item.order}' 입니다. (이유: ${item.reason})`;
-            return null; // 규칙에 맞지 않는 항목은 null로 처리
-        }).filter(Boolean).join('\n'); // null 값을 걸러내고 문자열로 합칩니다.
+            return null;
+        }).filter(Boolean).join('\n');
 
+        // 2. 의료진 프로필
+        const doctorText = genmac.doctorProfiles.map(d =>
+            `- ${d.name}: 얼굴제모 계수 ${d.face}, 바디제모 계수 ${d.body}, 주사시술 계수 ${d.injection}`
+        ).join('\n');
+
+        // 3. 젠틀맥스 프로(젠맥) 얼굴 제모 소요시간 (의료진별)
+        const faceLaserText = genmac.faceLaserData.map(item => {
+            const times = genmac.doctorProfiles.map(doc => {
+                let t;
+                if (doc.id === 'A_peak' && item.name === '얼굴전체') t = 80;
+                else t = Math.round(item.time * doc.face / 10) * 10;
+                return `${doc.name}: ${formatSec(t)}`;
+            }).join(', ');
+            return `  · ${item.name} (기준 ${formatSec(item.time)}) → ${times}`;
+        }).join('\n');
+
+        // 4. 젠맥 바디 제모 소요시간 (의료진별)
+        const bodyLaserText = genmac.bodyLaserData.map(item => {
+            const times = genmac.doctorProfiles.map(doc => {
+                const t = Math.round(item.time * doc.body / 10) * 10;
+                return `${doc.name}: ${formatSec(t)}`;
+            }).join(', ');
+            return `  · ${item.name} (기준 ${formatSec(item.time)}) → ${times}`;
+        }).join('\n');
+
+        // 5. 주사시술 소요시간 (의료진별)
+        const injectionText = genmac.injectionData.map(item => {
+            const times = genmac.doctorProfiles.map(doc => {
+                const t = Math.round(item.baseTimeSec * doc.injection / 10) * 10;
+                return `${doc.name}: ${formatSec(t)}`;
+            }).join(', ');
+            return `  · ${item.name} (기준 ${formatSec(item.baseTimeSec)}) → ${times}`;
+        }).join('\n');
+
+        // 6. 간호팀/피부팀 시술 시간
+        const nurseText = otherProcedures.filter(p => p.team === '간호팀').map(p =>
+            `  · ${p.name}: 시술 ${p.procedure}분${p.anesthesia > 0 ? `, 마취 ${p.anesthesia}분` : ''}`
+        ).join('\n');
+
+        const skinCategories = ['리프팅', '레이저', '필'];
+        const skinText = skinCategories.map(cat => {
+            const items = otherProcedures.filter(p => p.team === '피부팀' && p.category === cat);
+            const lines = items.map(p =>
+                `  · ${p.name}: 시술 ${p.procedure}분${p.anesthesia > 0 ? `, 마취 ${p.anesthesia}분` : ''}`
+            ).join('\n');
+            return `[${cat}]\n${lines}`;
+        }).join('\n');
+
+        // 7. 패치노트
         const patchNotesText = patchNotes.map(patch => {
             const notes = patch.notes.map(note => `  - ${note}`).join('\n');
             return `- 버전 ${patch.version} (${patch.date}):\n${notes}`;
         }).join('\n\n');
 
-        // 두 정보를 결합하여 최종 Knowledge Base를 구성합니다.
         knowledgeBaseCache = `
 # 시술 원칙 및 조합 예시
 ${rulesText}
 
-# 최신 업데이트 내역 (패치노트)
+# 의료진 프로필 및 속도 계수
+${doctorText}
+
+# 젠틀맥스 프로(젠맥) 얼굴 제모 - 의료진별 소요시간
+${faceLaserText}
+
+# 젠틀맥스 프로(젠맥) 바디 제모 - 의료진별 소요시간
+${bodyLaserText}
+
+# 주사 시술 - 의료진별 소요시간
+${injectionText}
+
+# 간호팀 시술 소요시간
+${nurseText}
+
+# 피부팀 시술 소요시간
+${skinText}
+
+# 최신 업데이트 내역
 ${patchNotesText}
         `.trim();
 
