@@ -15,15 +15,16 @@
   { "team": "피부팀", "category": "리프팅", "name": "세르프 (300샷)", "procedure": 25, "anesthesia": 0, "note": "" },
   { "team": "피부팀", "category": "리프팅", "name": "코레지", "procedure": 20, "anesthesia": 0, "note": "" },
 
-  { "team": "피부팀", "category": "레이저", "name": "피코토닝", "procedure": 5, "anesthesia": 0, "note": "" },
+  { "team": "피부팀", "category": "레이저", "name": "피코슈어토닝", "procedure": 5, "anesthesia": 10, "note": "" },
   { "team": "피부팀", "category": "레이저", "name": "레이저토닝", "procedure": 5, "anesthesia": 0, "note": "" },
   { "team": "피부팀", "category": "레이저", "name": "피코줌패스", "procedure": 5, "anesthesia": 10, "note": "" },
-  { "team": "피부팀", "category": "레이저", "name": "제네시스", "procedure": 5, "anesthesia": 0, "note": "" },
   { "team": "피부팀", "category": "레이저", "name": "피코프락셀/프락셀", "procedure": 5, "anesthesia": 15, "note": "" },
   { "team": "피부팀", "category": "레이저", "name": "엑셀V (홍조)", "procedure": 3, "anesthesia": 0, "note": "" },
+  { "team": "피부팀", "category": "레이저", "name": "엑셀V", "procedure": 3, "anesthesia": 0, "note": "" },
   { "team": "피부팀", "category": "레이저", "name": "브이빔", "procedure": 3, "anesthesia": 0, "note": "홍조/혈관 치료" },
   { "team": "피부팀", "category": "레이저", "name": "카프리", "procedure": 7, "anesthesia": 0, "note": "" },
 
+  { "team": "피부팀", "category": "필", "name": "압출", "procedure": 10, "anesthesia": 0, "note": "" },
   { "team": "피부팀", "category": "필", "name": "여드름 스케일링", "procedure": 5, "anesthesia": 0, "note": "압출 포함 시 시간 추가" },
   { "team": "피부팀", "category": "필", "name": "아쿠아필 (1,2,3제)", "procedure": 15, "anesthesia": 0, "note": "" },
   { "team": "피부팀", "category": "필", "name": "라라필/밀크필", "procedure": 10, "anesthesia": 0, "note": "" },

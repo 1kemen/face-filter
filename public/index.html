@@ -466,7 +466,7 @@
                                     {/* 피부팀 - 카테고리별 분리 */}
                                     {['리프팅', '레이저', '필'].map(cat => {
                                         const catData = appData.otherProcedureData.filter(p => p.team === '피부팀' && p.category === cat);
-                                        const catIcons = { '리프팅': 'zap', '레이저': 'sun', '필': 'droplets' };
+                                        const catIcons = { '리프팅': 'trending-up', '레이저': 'zap', '필': 'wind' };
                                         const catColors = { '리프팅': '#8b5cf6', '레이저': '#f59e0b', '필': '#10b981' };
                                         return (
                                             <div key={cat} className="card overflow-hidden">
