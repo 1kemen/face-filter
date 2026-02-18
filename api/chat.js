@@ -191,6 +191,16 @@ module.exports = async (req, res) => {
     });
 
     const aiResponse = completion.choices[0].message.content;
+
+    // Google Sheets 로그 기록 (fire-and-forget, 실패해도 서비스에 영향 없음)
+    if (process.env.SHEETS_WEBHOOK_URL) {
+      fetch(process.env.SHEETS_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: userQuery, answer: aiResponse })
+      }).catch(err => console.error('Sheets logging failed:', err));
+    }
+
     return res.status(200).json({ response: aiResponse });
   } catch (error) {
     // 서버 로그에 더 상세한 에러를 기록합니다.
