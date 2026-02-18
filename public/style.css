@@ -182,6 +182,41 @@ body {
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
+/* 신장 보정 슬라이더 */
+.height-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border);
+    outline: none;
+    cursor: pointer;
+}
+.height-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid white;
+    box-shadow: 0 2px 6px rgba(108,99,255,0.35);
+    cursor: pointer;
+    transition: transform 0.15s;
+}
+.height-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+}
+.height-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid white;
+    box-shadow: 0 2px 6px rgba(108,99,255,0.35);
+    cursor: pointer;
+}
+
 /* 테이블 */
 .data-table { width: 100%; border-collapse: collapse; }
 .data-table thead th {
