@@ -192,13 +192,20 @@ module.exports = async (req, res) => {
 
     const aiResponse = completion.choices[0].message.content;
 
-    // Google Sheets 로그 기록 (fire-and-forget, 실패해도 서비스에 영향 없음)
+    // Google Sheets 로그 기록 (await로 함수 종료 전 완료 보장, 최대 3초 타임아웃)
     if (process.env.SHEETS_WEBHOOK_URL) {
-      fetch(process.env.SHEETS_WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: userQuery, answer: aiResponse })
-      }).catch(err => console.error('Sheets logging failed:', err));
+      try {
+        await Promise.race([
+          fetch(process.env.SHEETS_WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question: userQuery, answer: aiResponse })
+          }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Sheets timeout')), 3000))
+        ]);
+      } catch (err) {
+        console.error('Sheets logging failed:', err.message);
+      }
     }
 
     return res.status(200).json({ response: aiResponse });
