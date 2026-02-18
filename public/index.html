@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>어레인지 통합 관제 보드 Ver 35.4</title>
+    <title>어레인지 통합 관제 보드 Ver 35.7</title>
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💧</text></svg>">
     <!-- Tailwind CSS -->
@@ -170,9 +170,9 @@
                 setPatientHeight(newGender === 'male' ? 174 : 163);
             };
 
-            // 신장 보정값 계산 (±10cm당 ±60초)
+            // 신장 보정값 계산 (±5cm당 ±30초)
             const baseHeight = gender === 'male' ? 174 : 163;
-            const heightAdjustSec = Math.round((patientHeight - baseHeight) / 10) * 60;
+            const heightAdjustSec = Math.round((patientHeight - baseHeight) / 5) * 30;
 
             const handleDoctorToggle = (doctorId) => {
                 setSelectedDoctors(prev =>
@@ -380,7 +380,7 @@
                                             기준: {baseHeight}cm
                                             {heightAdjustSec !== 0 && (
                                                 <span style={{marginLeft:'0.5rem', fontWeight:700, color: heightAdjustSec > 0 ? '#ef4444' : '#3b82f6'}}>
-                                                    → 바디 시술 {heightAdjustSec > 0 ? '+' : ''}{heightAdjustSec / 60}분 ({heightAdjustSec > 0 ? '+' : ''}{heightAdjustSec}초)
+                                                    → 바디 시술 {heightAdjustSec > 0 ? '+' : ''}{heightAdjustSec}초 ({heightAdjustSec > 0 ? '+' : ''}{(heightAdjustSec / 60).toFixed(1)}분)
                                                 </span>
                                             )}
                                             {heightAdjustSec === 0 && <span style={{marginLeft:'0.5rem', color:'#10b981', fontWeight:600}}>→ 기준 신장 (보정 없음)</span>}
