@@ -122,6 +122,7 @@
             const [selectedDoctors, setSelectedDoctors] = useState([]); // 의료진 필터링 상태
             const [gender, setGender] = useState('male'); // 성별 (신장 보정용)
             const [patientHeight, setPatientHeight] = useState(174); // 환자 신장 (cm)
+            const [openSections, setOpenSections] = useState({ face: true, body: true, chart: false }); // 아코디언 상태
             const [input, setInput] = useState('');
             const [isLoading, setIsLoading] = useState(false); // AI 답변 로딩 상태
             const messagesEndRef = useRef(null);
@@ -164,6 +165,10 @@
                 if (window.lucide) window.lucide.createIcons();
                 messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
             }, [messages, activeTab]);
+
+            const toggleSection = (section) => {
+                setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+            };
 
             const handleGenderChange = (newGender) => {
                 setGender(newGender);
@@ -341,122 +346,160 @@
                             )}
                             {activeTab === 'genmac' && (
                                 <div className="space-y-5">
-                                    {/* 신장 보정 슬라이더 */}
-                                    <div className="card p-4">
-                                        <div className="info-label"><Icon name="ruler" className="w-3 h-3"/> 바디 시술 신장 보정</div>
-                                        <div className="flex items-center gap-3 mb-3">
-                                            <button
-                                                onClick={() => handleGenderChange('male')}
-                                                className={`doc-filter-btn ${gender === 'male' ? 'selected' : ''}`}
-                                                style={{
-                                                    borderColor: gender === 'male' ? '#6366f1' : 'var(--border)',
-                                                    color: gender === 'male' ? '#6366f1' : 'var(--text-secondary)',
-                                                    background: gender === 'male' ? '#6366f115' : 'white',
-                                                }}
-                                            >♂ 남성 (174cm)</button>
-                                            <button
-                                                onClick={() => handleGenderChange('female')}
-                                                className={`doc-filter-btn ${gender === 'female' ? 'selected' : ''}`}
-                                                style={{
-                                                    borderColor: gender === 'female' ? '#ec4899' : 'var(--border)',
-                                                    color: gender === 'female' ? '#ec4899' : 'var(--text-secondary)',
-                                                    background: gender === 'female' ? '#ec489915' : 'white',
-                                                }}
-                                            >♀ 여성 (163cm)</button>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <input
-                                                type="range"
-                                                min="150"
-                                                max="200"
-                                                value={patientHeight}
-                                                onChange={e => setPatientHeight(Number(e.target.value))}
-                                                className="height-slider"
-                                                style={{flex:1}}
-                                            />
-                                            <span style={{fontWeight:800, fontSize:'1.1rem', color:'var(--text-primary)', minWidth:'55px', textAlign:'right'}}>{patientHeight}cm</span>
-                                        </div>
-                                        <div style={{marginTop:'0.5rem', fontSize:'0.78rem', color:'var(--text-secondary)'}}>
-                                            기준: {baseHeight}cm
-                                            {heightAdjustSec !== 0 && (
-                                                <span style={{marginLeft:'0.5rem', fontWeight:700, color: heightAdjustSec > 0 ? '#ef4444' : '#3b82f6'}}>
-                                                    → 바디 시술 {heightAdjustSec > 0 ? '+' : ''}{heightAdjustSec}초 ({heightAdjustSec > 0 ? '+' : ''}{(heightAdjustSec / 60).toFixed(1)}분)
-                                                </span>
-                                            )}
-                                            {heightAdjustSec === 0 && <span style={{marginLeft:'0.5rem', color:'#10b981', fontWeight:600}}>→ 기준 신장 (보정 없음)</span>}
-                                        </div>
-                                        <div style={{marginTop:'0.3rem', fontSize:'0.68rem', color:'var(--text-secondary)', opacity:0.7}}>
-                                            ※ 겨드랑이, 브라질리언은 보정 제외
-                                        </div>
-                                    </div>
-
+                                    {/* 얼굴 제모 아코디언 */}
                                     <div className="card overflow-hidden">
-                                        <div className="card-header flex justify-between items-center">
-                                            <h3 className="font-bold flex items-center gap-2"><Icon name="file-text" className="w-4 h-4"/> 의료진별 실제 소요 시간표</h3>
-                                            <span className="badge">10초 단위 정렬됨</span>
+                                        <div className="accordion-header" onClick={() => toggleSection('face')}>
+                                            <h3 className="font-bold flex items-center gap-2">
+                                                <Icon name="smile" className="w-4 h-4"/>
+                                                얼굴 제모
+                                                <span className="badge">{appData.faceLaserData.length}개 항목</span>
+                                            </h3>
+                                            <Icon name={openSections.face ? 'chevron-up' : 'chevron-down'} className="w-4 h-4 accordion-chevron"/>
                                         </div>
-                                        <div className="overflow-x-auto">
-                                            <table className="w-full text-center data-table">
-                                                <thead>
-                                                    <tr>
-                                                        <th className="text-left pl-6">시술 항목</th>
-                                                        <th>Base</th>
-                                                        {filteredDoctors.map(doc => (
-                                                            <th key={doc.id} style={{ color: doc.color }}>{doc.name}</th>
+                                        {openSections.face && (
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full text-center data-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th className="text-left pl-6">시술 항목</th>
+                                                            <th>Base</th>
+                                                            {filteredDoctors.map(doc => (
+                                                                <th key={doc.id} style={{ color: doc.color }}>{doc.name}</th>
+                                                            ))}
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {appData.faceLaserData.map((item, i) => (
+                                                            <tr key={i}>
+                                                                <td className="text-left pl-6 font-medium">{item.name}</td>
+                                                                <td style={{color:'var(--text-secondary)'}}>{formatTime(item.time)}</td>
+                                                                {filteredDoctors.map(doc => (
+                                                                    <td key={doc.id} className="font-bold" style={{color: doc.id.includes('peak') ? '#ef4444' : 'inherit'}}>
+                                                                        {formatTime(calculateTime(item, doc, 0))}
+                                                                    </td>
+                                                                ))}
+                                                            </tr>
                                                         ))}
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr className="section-row"><td colSpan={7}>얼굴 제모</td></tr>
-                                                    {appData.faceLaserData.map((item, i) => (
-                                                        <tr key={i}>
-                                                            <td className="text-left pl-6 font-medium">{item.name}</td>
-                                                            <td style={{color:'var(--text-secondary)'}}>{formatTime(item.time)}</td>
-                                                            {filteredDoctors.map(doc => (
-                                                                <td key={doc.id} className="font-bold" style={{color: doc.id.includes('peak') ? '#ef4444' : 'inherit'}}>
-                                                                    {formatTime(calculateTime(item, doc, 0))}
-                                                                </td>
-                                                            ))}
-                                                        </tr>
-                                                    ))}
-                                                    <tr className="section-row"><td colSpan={7}>바디 제모 {heightAdjustSec !== 0 && <span style={{fontSize:'0.75rem',fontWeight:400,color:'var(--accent)'}}>({patientHeight}cm, {heightAdjustSec > 0 ? '+' : ''}{heightAdjustSec}초 보정)</span>}</td></tr>
-                                                    {appData.bodyLaserData.map((item, i) => (
-                                                        <tr key={i}>
-                                                            <td className="text-left pl-6 font-medium">
-                                                                {item.name}
-                                                                {HEIGHT_EXCLUDED.includes(item.name) && heightAdjustSec !== 0 && <span style={{fontSize:'0.65rem',color:'var(--text-secondary)',marginLeft:'0.3rem'}}>(보정 제외)</span>}
-                                                            </td>
-                                                            <td style={{color:'var(--text-secondary)'}}>{formatTime(item.time)}</td>
-                                                            {filteredDoctors.map(doc => (
-                                                                <td key={doc.id} className="font-bold">
-                                                                    {formatTime(calculateTime(item, doc, heightAdjustSec))}
-                                                                </td>
-                                                            ))}
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        )}
                                     </div>
 
+                                    {/* 바디 제모 아코디언 */}
                                     <div className="card overflow-hidden">
-                                        <div className="card-header">
-                                            <h3 className="font-bold flex items-center gap-2"><Icon name="bar-chart-2" className="w-4 h-4"/> 의료진별 젠맥 시술 시간 비교</h3>
+                                        <div className="accordion-header" onClick={() => toggleSection('body')}>
+                                            <h3 className="font-bold flex items-center gap-2">
+                                                <Icon name="activity" className="w-4 h-4"/>
+                                                바디 제모
+                                                <span className="badge">{appData.bodyLaserData.length}개 항목</span>
+                                                {heightAdjustSec !== 0 && <span className="badge" style={{background:'#6c63ff18',color:'var(--accent)'}}>{heightAdjustSec > 0 ? '+' : ''}{heightAdjustSec}초</span>}
+                                            </h3>
+                                            <Icon name={openSections.body ? 'chevron-up' : 'chevron-down'} className="w-4 h-4 accordion-chevron"/>
                                         </div>
-                                        <div className="p-4 pt-8 h-[450px]">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 70 }}>
-                                                    <CartesianGrid strokeDasharray="3 3" />
-                                                    <XAxis dataKey="name" tick={{fontSize: 11}} angle={-45} textAnchor="end" interval={0} />
-                                                    <YAxis label={{ value: '시간(초)', angle: -90, position: 'insideLeft' }} />
-                                                    <Tooltip formatter={(value) => `${formatTime(value)}`} />
-                                                    <Legend wrapperStyle={{ bottom: 10 }} />
-                                                    {filteredDoctors.map(doc => (
-                                                        <Bar key={doc.id} dataKey={doc.id} name={doc.name} fill={doc.color} radius={[3,3,0,0]} />
-                                                    ))}
-                                                </BarChart>
-                                            </ResponsiveContainer>
+                                        {openSections.body && (
+                                            <div>
+                                                {/* 신장 보정 슬라이더 - 바디 섹션 내부 */}
+                                                <div className="p-4" style={{borderBottom:'1px solid var(--border)', background:'#f8f7ff'}}>
+                                                    <div className="info-label" style={{marginBottom:'0.5rem'}}><Icon name="ruler" className="w-3 h-3"/> 신장 보정</div>
+                                                    <div className="flex items-center gap-3 mb-2">
+                                                        <button
+                                                            onClick={() => handleGenderChange('male')}
+                                                            className={`doc-filter-btn ${gender === 'male' ? 'selected' : ''}`}
+                                                            style={{
+                                                                borderColor: gender === 'male' ? '#6366f1' : 'var(--border)',
+                                                                color: gender === 'male' ? '#6366f1' : 'var(--text-secondary)',
+                                                                background: gender === 'male' ? '#6366f115' : 'white',
+                                                            }}
+                                                        >♂ 남성 (174cm)</button>
+                                                        <button
+                                                            onClick={() => handleGenderChange('female')}
+                                                            className={`doc-filter-btn ${gender === 'female' ? 'selected' : ''}`}
+                                                            style={{
+                                                                borderColor: gender === 'female' ? '#ec4899' : 'var(--border)',
+                                                                color: gender === 'female' ? '#ec4899' : 'var(--text-secondary)',
+                                                                background: gender === 'female' ? '#ec489915' : 'white',
+                                                            }}
+                                                        >♀ 여성 (163cm)</button>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <input
+                                                            type="range" min="150" max="200"
+                                                            value={patientHeight}
+                                                            onChange={e => setPatientHeight(Number(e.target.value))}
+                                                            className="height-slider" style={{flex:1}}
+                                                        />
+                                                        <span style={{fontWeight:800, fontSize:'1.1rem', color:'var(--text-primary)', minWidth:'55px', textAlign:'right'}}>{patientHeight}cm</span>
+                                                    </div>
+                                                    <div style={{marginTop:'0.4rem', fontSize:'0.75rem', color:'var(--text-secondary)'}}>
+                                                        기준: {baseHeight}cm
+                                                        {heightAdjustSec !== 0 && (
+                                                            <span style={{marginLeft:'0.5rem', fontWeight:700, color: heightAdjustSec > 0 ? '#ef4444' : '#3b82f6'}}>
+                                                                → {heightAdjustSec > 0 ? '+' : ''}{heightAdjustSec}초 ({heightAdjustSec > 0 ? '+' : ''}{(heightAdjustSec / 60).toFixed(1)}분)
+                                                            </span>
+                                                        )}
+                                                        {heightAdjustSec === 0 && <span style={{marginLeft:'0.5rem', color:'#10b981', fontWeight:600}}>→ 기준 신장 (보정 없음)</span>}
+                                                        <span style={{marginLeft:'0.8rem', fontSize:'0.68rem', opacity:0.7}}>※ 겨드랑이, 브라질리언 제외</span>
+                                                    </div>
+                                                </div>
+                                                <div className="overflow-x-auto">
+                                                    <table className="w-full text-center data-table">
+                                                        <thead>
+                                                            <tr>
+                                                                <th className="text-left pl-6">시술 항목</th>
+                                                                <th>Base</th>
+                                                                {filteredDoctors.map(doc => (
+                                                                    <th key={doc.id} style={{ color: doc.color }}>{doc.name}</th>
+                                                                ))}
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {appData.bodyLaserData.map((item, i) => (
+                                                                <tr key={i}>
+                                                                    <td className="text-left pl-6 font-medium">
+                                                                        {item.name}
+                                                                        {HEIGHT_EXCLUDED.includes(item.name) && heightAdjustSec !== 0 && <span style={{fontSize:'0.65rem',color:'var(--text-secondary)',marginLeft:'0.3rem'}}>(보정 제외)</span>}
+                                                                    </td>
+                                                                    <td style={{color:'var(--text-secondary)'}}>{formatTime(item.time)}</td>
+                                                                    {filteredDoctors.map(doc => (
+                                                                        <td key={doc.id} className="font-bold">
+                                                                            {formatTime(calculateTime(item, doc, heightAdjustSec))}
+                                                                        </td>
+                                                                    ))}
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* 차트 아코디언 */}
+                                    <div className="card overflow-hidden">
+                                        <div className="accordion-header" onClick={() => toggleSection('chart')}>
+                                            <h3 className="font-bold flex items-center gap-2">
+                                                <Icon name="bar-chart-2" className="w-4 h-4"/>
+                                                의료진별 시술 시간 비교 차트
+                                            </h3>
+                                            <Icon name={openSections.chart ? 'chevron-up' : 'chevron-down'} className="w-4 h-4 accordion-chevron"/>
                                         </div>
+                                        {openSections.chart && (
+                                            <div className="p-4 pt-8 h-[450px]">
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 70 }}>
+                                                        <CartesianGrid strokeDasharray="3 3" />
+                                                        <XAxis dataKey="name" tick={{fontSize: 11}} angle={-45} textAnchor="end" interval={0} />
+                                                        <YAxis label={{ value: '시간(초)', angle: -90, position: 'insideLeft' }} />
+                                                        <Tooltip formatter={(value) => `${formatTime(value)}`} />
+                                                        <Legend wrapperStyle={{ bottom: 10 }} />
+                                                        {filteredDoctors.map(doc => (
+                                                            <Bar key={doc.id} dataKey={doc.id} name={doc.name} fill={doc.color} radius={[3,3,0,0]} />
+                                                        ))}
+                                                    </BarChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )}

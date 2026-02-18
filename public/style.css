@@ -182,6 +182,24 @@ body {
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
+/* 아코디언 헤더 */
+.accordion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+}
+.accordion-header:hover {
+    background: #f8f7ff;
+}
+.accordion-chevron {
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
 /* 신장 보정 슬라이더 */
 .height-slider {
     -webkit-appearance: none;
