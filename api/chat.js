@@ -9,6 +9,7 @@ const rules = require('../data/procedure-rules.json');
 const patchNotes = require('../data/patch-notes.json');
 const genmac = require('../data/genmac.json');
 const otherProcedures = require('../data/other-procedures.json');
+const corrections = require('../data/corrections.json');
 
 // Knowledge Base 및 시스템 프롬프트 캐싱 변수
 let knowledgeBaseCache = null;
@@ -86,6 +87,11 @@ function getKnowledgeBase() {
             return `- 버전 ${patch.version} (${patch.date}):\n${notes}`;
         }).join('\n\n');
 
+        // 8. 정정 메모
+        const correctionsText = corrections.length > 0
+            ? corrections.map(c => `- [${c.date}] ${c.topic}: ${c.correction}`).join('\n')
+            : '(등록된 정정 메모 없음)';
+
         knowledgeBaseCache = `
 # 시술 원칙 및 조합 예시
 ${rulesText}
@@ -118,6 +124,10 @@ ${skinText}
 
 # 최신 업데이트 내역
 ${patchNotesText}
+
+# 운영 중 확인된 정정 메모 (최우선 적용)
+아래 내용은 실제 운영 중 발견된 오류를 수정한 것입니다. 위 참고 정보와 충돌할 경우 반드시 이 정정 메모를 우선시하세요.
+${correctionsText}
         `.trim();
 
         return knowledgeBaseCache;
