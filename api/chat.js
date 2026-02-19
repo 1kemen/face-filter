@@ -1,6 +1,7 @@
 // .env 파일의 환경 변수를 로드합니다.
-require('dotenv').config(); 
+require('dotenv').config();
 const OpenAI = require('openai');
+const https = require('https');
 
 // --- Start of Inlined Logic ---
 // 데이터 파일을 빌드 시점에 포함시키기 위해 require를 사용합니다.
@@ -9,8 +10,9 @@ const patchNotes = require('../data/patch-notes.json');
 const genmac = require('../data/genmac.json');
 const otherProcedures = require('../data/other-procedures.json');
 
-// Knowledge Base 데이터를 캐싱할 변수
+// Knowledge Base 및 시스템 프롬프트 캐싱 변수
 let knowledgeBaseCache = null;
+let systemPromptCache = null;
 
 function formatSec(sec) {
     const m = Math.floor(sec / 60);
@@ -125,6 +127,12 @@ ${patchNotesText}
     }
 }
 
+function getSystemPrompt() {
+    if (systemPromptCache) return systemPromptCache;
+    systemPromptCache = createSystemPrompt(getKnowledgeBase());
+    return systemPromptCache;
+}
+
 function createSystemPrompt(knowledgeBase) {
     return `
         당신은 '어레인지 클리닉'의 AI 전문가 '페필이'입니다. 당신의 역할은 사용자의 질문에 대해 아래 '참고 정보'를 바탕으로 친절하고 명확하게 답변하는 것입니다.
@@ -134,7 +142,7 @@ function createSystemPrompt(knowledgeBase) {
 
         # 답변 시 반드시 지켜야 할 규칙:
         1.  **전문가적이지만 쉬운 설명:** 당신은 전문가이지만, 고객을 대하듯 쉽고 친절한 말투를 사용하세요.
-        2.  **정보 기반 답변:** 답변은 반드시 아래 제공된 '참고 정보'에 근거해야 합니다. 정보에 없는 내용은 답변하지 마세요.
+        2.  **정보 기반 답변 (우선순위):** 시술 소요시간, 의료진 배정, 시술 순서 등 클리닉 운영에 관한 질문은 반드시 아래 '참고 정보'에 근거하여 답변하세요. 단, 참고 정보에 없는 시술의 일반적인 특성·원리·효과에 대한 질문(예: 인모드, 울쎄라 등 기기 설명)은 당신의 일반 의학·미용 지식으로 자유롭게 답변하세요.
         3.  **코드나 오류 메시지 절대 금지:** 당신은 코드를 실행하거나 프로그래밍을 하는 역할이 아닙니다. 따라서 자바스크립트 코드, 'rules is not defined'와 같은 기술 오류 메시지, 또는 기타 컴퓨터 용어를 절대로 사용해서는 안 됩니다. 오직 자연스러운 한국어 대화만을 생성해야 합니다.
 
         ---
@@ -142,6 +150,38 @@ function createSystemPrompt(knowledgeBase) {
         ${knowledgeBase}
     `;
 }
+function logToSheets(webhookUrl, question, answer) {
+    return new Promise((resolve) => {
+        const postData = JSON.stringify({ question, answer });
+        const parsedUrl = new URL(webhookUrl);
+        const options = {
+            hostname: parsedUrl.hostname,
+            path: parsedUrl.pathname + parsedUrl.search,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(postData)
+            }
+        };
+        const req = https.request(options, (res) => {
+            console.log('Sheets response status:', res.statusCode);
+            res.resume();
+            resolve(res.statusCode);
+        });
+        req.on('error', (err) => {
+            console.error('Sheets error:', err.message);
+            resolve(null);
+        });
+        req.setTimeout(8000, () => {
+            console.error('Sheets timeout');
+            req.destroy();
+            resolve(null);
+        });
+        req.write(postData);
+        req.end();
+    });
+}
+
 // --- End of Inlined Logic ---
 
 // 환경 변수에서 OpenAI API 키와 모델을 가져와 클라이언트를 초기화합니다.
@@ -170,42 +210,38 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // 클라이언트에서는 이제 대화 기록만 받습니다.
     const { messages } = req.body;
-    const userQuery = messages && messages.length > 0 ? messages[messages.length - 1].content : 'No query found';
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ response: '잘못된 요청입니다.' });
+    }
+
+    // 비용 보호: 단일 메시지 최대 1500자, 대화 기록 최대 20개
+    const MAX_MSG_LENGTH = 1500;
+    const MAX_HISTORY = 20;
+    if (messages.some(m => typeof m.content === 'string' && m.content.length > MAX_MSG_LENGTH)) {
+      return res.status(400).json({ response: `메시지가 너무 깁니다. (최대 ${MAX_MSG_LENGTH}자)` });
+    }
+    const limitedMessages = messages.slice(-MAX_HISTORY);
+
+    const userQuery = limitedMessages[limitedMessages.length - 1].content;
     console.log('Received User Query:', userQuery);
 
-    // 서버에서 직접 내부 정보를 로드합니다.
-    const knowledgeBase = getKnowledgeBase();
-
-    // 서버에서 직접 시스템 프롬프트를 최종적으로 구성합니다.
-    const systemPrompt = createSystemPrompt(knowledgeBase);
+    const systemPrompt = getSystemPrompt();
 
     // OpenAI API를 호출하여 채팅 응답을 생성합니다.
     const completion = await openai.chat.completions.create({
       model: MODEL,
       messages: [
         { role: "system", content: systemPrompt },
-        ...messages
+        ...limitedMessages
       ],
     });
 
     const aiResponse = completion.choices[0].message.content;
 
-    // Google Sheets 로그 기록 (await로 함수 종료 전 완료 보장, 최대 3초 타임아웃)
+    // Google Sheets 로그 기록 (https 모듈로 직접 POST, 리다이렉트 미추적)
     if (process.env.SHEETS_WEBHOOK_URL) {
-      try {
-        await Promise.race([
-          fetch(process.env.SHEETS_WEBHOOK_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ question: userQuery, answer: aiResponse })
-          }),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Sheets timeout')), 3000))
-        ]);
-      } catch (err) {
-        console.error('Sheets logging failed:', err.message);
-      }
+      await logToSheets(process.env.SHEETS_WEBHOOK_URL, userQuery, aiResponse);
     }
 
     return res.status(200).json({ response: aiResponse });

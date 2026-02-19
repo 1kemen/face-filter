@@ -404,3 +404,124 @@ body {
     animation: spin 0.7s linear infinite;
     display: inline-block;
 }
+
+/* 엔딩 크레딧 */
+@keyframes creditsRoll {
+    from { transform: translateY(100vh); }
+    to   { transform: translateY(-100%); }
+}
+.credits-overlay {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, #0d0d2b 0%, #050510 100%);
+    z-index: 9999;
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+.credits-close-hint {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.5rem;
+    color: rgba(255,255,255,0.3);
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    z-index: 1;
+    pointer-events: none;
+}
+.credits-roll {
+    animation: creditsRoll 38s linear forwards;
+    text-align: center;
+    color: rgba(255,255,255,0.88);
+    padding: 0 2rem 60vh;
+    width: 100%;
+    max-width: 480px;
+    line-height: 1.9;
+}
+.credits-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: white;
+    margin-bottom: 0.3rem;
+}
+.credits-ver {
+    font-size: 0.8rem;
+    color: rgba(108,99,255,0.9);
+    letter-spacing: 0.15em;
+    margin-bottom: 2.5rem;
+    font-weight: 700;
+}
+.credits-section {
+    margin: 2rem 0 0.5rem;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    color: rgba(108,99,255,0.7);
+    text-transform: uppercase;
+}
+.credits-divider {
+    width: 60px;
+    height: 1px;
+    background: rgba(108,99,255,0.3);
+    margin: 1.5rem auto;
+}
+.credits-role {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.15rem;
+}
+.credits-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 1.25rem;
+}
+.credits-stat-label {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.06em;
+}
+.credits-stat-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.85);
+    margin-bottom: 1.25rem;
+}
+.credits-final {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.6);
+    line-height: 2.2;
+    margin-top: 0.5rem;
+}
+.credits-candy {
+    font-size: 2.5rem;
+    margin-top: 1.5rem;
+}
+
+/* 모바일 최적화 */
+@media (max-width: 1024px) {
+    .chat-container {
+        height: calc(100dvh - 200px);
+        min-height: 400px;
+    }
+}
+@media (max-width: 640px) {
+    .app-header { padding: 1rem 1.25rem; }
+    .header-title { font-size: 1.1rem; }
+    .tab-wrap { flex-wrap: wrap; width: 100%; }
+    .tab-btn { padding: 0.45rem 0.85rem; font-size: 0.82rem; }
+    .data-table tbody td { padding: 0.5rem 0.4rem; font-size: 0.8rem; }
+    .data-table thead th { padding: 0.5rem 0.4rem; font-size: 0.68rem; }
+    .accordion-header { padding: 0.85rem 1rem; }
+    .card-header { padding: 0.85rem 1rem; }
+    .ai-message-bubble, .user-message-bubble { max-width: 92%; }
+    .chat-footer { padding: 0.6rem 0.75rem; gap: 0.4rem; }
+    .chat-body { padding: 0.75rem; gap: 0.6rem; }
+    .chat-input { padding: 0.55rem 0.75rem; font-size: 0.82rem; }
+    .chat-send-btn { padding: 0.55rem 1rem; font-size: 0.82rem; }
+}
