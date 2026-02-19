@@ -408,7 +408,7 @@
                     <div className="app-header">
                         <div>
                             <div className="header-title">
-                                <PepilyIcon size={36} />
+                                <PepilyIcon size={44} />
                                 페필이는어레인지마스터
                             </div>
                             <p className="header-sub">AI 기반 시술 순서 최적화 어시스턴트</p>
@@ -726,7 +726,7 @@
                                 <div className="chat-container">
                                     <div className="chat-header">
                                         <div style={{display:'flex', alignItems:'center', gap:'0.6rem'}}>
-                                            <PepilyIcon size={32}/>
+                                            <PepilyIcon size={40}/>
                                             <div>
                                                 <div style={{fontWeight:800, fontSize:'0.95rem'}}>페필이</div>
                                                 <div style={{fontSize:'0.7rem', opacity:0.6, fontWeight:400}}>병원 운영 AI 매니저</div>
@@ -739,7 +739,7 @@
                                     <div className="chat-body">
                                         {messages.map((msg, i) => (
                                             <div key={i} style={{display:'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start', alignItems:'flex-end', gap:'0.5rem'}}>
-                                                {msg.role !== 'user' && <PepilyIcon size={26} style={{flexShrink:0, background:'var(--accent)', borderRadius:'50%', padding:'2px'}}/>}
+                                                {msg.role !== 'user' && <PepilyIcon size={32} style={{flexShrink:0, background:'var(--accent)', borderRadius:'50%', padding:'2px'}}/>}
                                                 {msg.role === 'user' ? (
                                                     <div className="user-message-bubble" style={{whiteSpace:'pre-wrap'}}>
                                                         {msg.text}
