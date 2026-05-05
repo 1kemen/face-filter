@@ -13,6 +13,7 @@
   { "team": "피부팀", "category": "리프팅", "name": "리니어지 (500샷)", "procedure": 15, "anesthesia": 0, "note": "500샷 기준" },
   { "team": "피부팀", "category": "리프팅", "name": "올타이트 (300샷)", "procedure": 15, "anesthesia": 0, "note": "300샷 기준" },
   { "team": "피부팀", "category": "리프팅", "name": "볼뉴머 (300샷)", "procedure": 10, "anesthesia": 0, "note": "" },
+  { "team": "피부팀", "category": "리프팅", "name": "아이볼뉴머 (100샷)", "procedure": 7, "anesthesia": 0, "note": "100샷 기준" },
   { "team": "피부팀", "category": "리프팅", "name": "울쎄라 (300샷)", "procedure": 25, "anesthesia": 15, "note": "마취 15분 적용" },
   { "team": "피부팀", "category": "리프팅", "name": "세르프 (300샷)", "procedure": 25, "anesthesia": 0, "note": "" },
 
