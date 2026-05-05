@@ -138,7 +138,7 @@
             const [input, setInput] = useState('');
             const [isLoading, setIsLoading] = useState(false); // AI 답변 로딩 상태
             const [showCredits, setShowCredits] = useState(false); // 이스터에그 크레딧
-            const [hoveredDoc, setHoveredDoc] = useState(null);
+            const [docTooltip, setDocTooltip] = useState(null); // { doc, rect }
             const messagesEndRef = useRef(null);
 
             // --- 데이터 로딩 ---
@@ -324,6 +324,7 @@
             }
 
             return (
+                <React.Fragment>
                 <div className="p-4 md:p-8 max-w-7xl mx-auto">
 
                     {/* 🌿 엔딩 크레딧 오버레이 */}
@@ -449,54 +450,24 @@
                         <main className="lg:col-span-3 space-y-5">
                             {/* 공용 의료진 필터 - genmac, other 탭에서 공통 표시 */}
                             {(activeTab === 'genmac' || activeTab === 'other') && (
-                                <div className="card p-4" style={{overflow: 'visible'}}>
+                                <div className="card p-4">
                                     <div className="info-label"><Icon name="users" className="w-3 h-3"/> 의료진 필터</div>
-                                    <div className="flex flex-wrap gap-2" style={{overflow: 'visible'}}>
+                                    <div className="flex flex-wrap gap-2">
                                         {appData.doctorProfiles.map(doc => {
                                             const isSelected = selectedDoctors.includes(doc.id);
                                             return (
-                                                <div key={doc.id} style={{ position: 'relative' }}
-                                                    onMouseEnter={() => setHoveredDoc(doc.id)}
-                                                    onMouseLeave={() => setHoveredDoc(null)}
-                                                >
-                                                    <button
-                                                        onClick={() => handleDoctorToggle(doc.id)}
-                                                        className={`doc-filter-btn ${isSelected ? 'selected' : ''}`}
-                                                        style={{
-                                                            borderColor: isSelected ? doc.color : 'var(--border)',
-                                                            color: isSelected ? doc.color : 'var(--text-secondary)',
-                                                            background: isSelected ? `${doc.color}15` : 'white',
-                                                        }}
-                                                    >{doc.name}</button>
-                                                    {hoveredDoc === doc.id && doc.memo && (
-                                                        <div style={{
-                                                            position: 'absolute',
-                                                            bottom: 'calc(100% + 8px)',
-                                                            left: '0',
-                                                            width: '180px',
-                                                            background: '#1e1b4b',
-                                                            color: 'white',
-                                                            padding: '6px 11px',
-                                                            borderRadius: '8px',
-                                                            fontSize: '0.72rem',
-                                                            whiteSpace: 'normal',
-                                                            wordBreak: 'keep-all',
-                                                            zIndex: 50,
-                                                            boxShadow: '0 4px 14px rgba(0,0,0,0.18)',
-                                                            pointerEvents: 'none',
-                                                            lineHeight: 1.5,
-                                                        }}>
-                                                            {doc.memo}
-                                                            <div style={{
-                                                                position: 'absolute',
-                                                                top: '100%', left: '20px',
-                                                                borderLeft: '5px solid transparent',
-                                                                borderRight: '5px solid transparent',
-                                                                borderTop: '5px solid #1e1b4b',
-                                                            }}/>
-                                                        </div>
-                                                    )}
-                                                </div>
+                                                <button
+                                                    key={doc.id}
+                                                    onClick={() => handleDoctorToggle(doc.id)}
+                                                    className={`doc-filter-btn ${isSelected ? 'selected' : ''}`}
+                                                    style={{
+                                                        borderColor: isSelected ? doc.color : 'var(--border)',
+                                                        color: isSelected ? doc.color : 'var(--text-secondary)',
+                                                        background: isSelected ? `${doc.color}15` : 'white',
+                                                    }}
+                                                    onMouseEnter={e => { const r = e.currentTarget.getBoundingClientRect(); setDocTooltip({ doc, rect: r }); }}
+                                                    onMouseLeave={() => setDocTooltip(null)}
+                                                >{doc.name}</button>
                                             );
                                         })}
                                     </div>
@@ -851,6 +822,38 @@
                         </aside>
                     </div>
                 </div>
+
+                {/* 의료진 툴팁 - position fixed로 overflow 제약 완전 우회 */}
+                {docTooltip && docTooltip.doc.memo && (
+                    <div style={{
+                        position: 'fixed',
+                        left: `${docTooltip.rect.left}px`,
+                        top: `${docTooltip.rect.top - 8}px`,
+                        transform: 'translateY(-100%)',
+                        width: '180px',
+                        background: '#1e1b4b',
+                        color: 'white',
+                        padding: '6px 11px',
+                        borderRadius: '8px',
+                        fontSize: '0.72rem',
+                        whiteSpace: 'normal',
+                        wordBreak: 'keep-all',
+                        zIndex: 9999,
+                        boxShadow: '0 4px 14px rgba(0,0,0,0.18)',
+                        pointerEvents: 'none',
+                        lineHeight: 1.5,
+                    }}>
+                        {docTooltip.doc.memo}
+                        <div style={{
+                            position: 'absolute',
+                            top: '100%', left: '20px',
+                            borderLeft: '5px solid transparent',
+                            borderRight: '5px solid transparent',
+                            borderTop: '5px solid #1e1b4b',
+                        }}/>
+                    </div>
+                )}
+                </React.Fragment>
             );
         }
 
