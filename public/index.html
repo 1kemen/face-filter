@@ -138,6 +138,7 @@
             const [input, setInput] = useState('');
             const [isLoading, setIsLoading] = useState(false); // AI 답변 로딩 상태
             const [showCredits, setShowCredits] = useState(false); // 이스터에그 크레딧
+            const [hoveredDoc, setHoveredDoc] = useState(null);
             const messagesEndRef = useRef(null);
 
             // --- 데이터 로딩 ---
@@ -454,16 +455,48 @@
                                         {appData.doctorProfiles.map(doc => {
                                             const isSelected = selectedDoctors.includes(doc.id);
                                             return (
-                                                <button
-                                                    key={doc.id}
-                                                    onClick={() => handleDoctorToggle(doc.id)}
-                                                    className={`doc-filter-btn ${isSelected ? 'selected' : ''}`}
-                                                    style={{
-                                                        borderColor: isSelected ? doc.color : 'var(--border)',
-                                                        color: isSelected ? doc.color : 'var(--text-secondary)',
-                                                        background: isSelected ? `${doc.color}15` : 'white',
-                                                    }}
-                                                >{doc.name}</button>
+                                                <div key={doc.id} style={{ position: 'relative' }}
+                                                    onMouseEnter={() => setHoveredDoc(doc.id)}
+                                                    onMouseLeave={() => setHoveredDoc(null)}
+                                                >
+                                                    <button
+                                                        onClick={() => handleDoctorToggle(doc.id)}
+                                                        className={`doc-filter-btn ${isSelected ? 'selected' : ''}`}
+                                                        style={{
+                                                            borderColor: isSelected ? doc.color : 'var(--border)',
+                                                            color: isSelected ? doc.color : 'var(--text-secondary)',
+                                                            background: isSelected ? `${doc.color}15` : 'white',
+                                                        }}
+                                                    >{doc.name}</button>
+                                                    {hoveredDoc === doc.id && doc.memo && (
+                                                        <div style={{
+                                                            position: 'absolute',
+                                                            bottom: 'calc(100% + 8px)',
+                                                            left: '50%',
+                                                            transform: 'translateX(-50%)',
+                                                            background: '#1e1b4b',
+                                                            color: 'white',
+                                                            padding: '6px 11px',
+                                                            borderRadius: '8px',
+                                                            fontSize: '0.72rem',
+                                                            whiteSpace: 'nowrap',
+                                                            zIndex: 50,
+                                                            boxShadow: '0 4px 14px rgba(0,0,0,0.18)',
+                                                            pointerEvents: 'none',
+                                                            lineHeight: 1.5,
+                                                        }}>
+                                                            {doc.memo}
+                                                            <div style={{
+                                                                position: 'absolute',
+                                                                top: '100%', left: '50%',
+                                                                transform: 'translateX(-50%)',
+                                                                borderLeft: '5px solid transparent',
+                                                                borderRight: '5px solid transparent',
+                                                                borderTop: '5px solid #1e1b4b',
+                                                            }}/>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             );
                                         })}
                                     </div>
