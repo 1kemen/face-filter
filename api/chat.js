@@ -68,16 +68,30 @@ function getKnowledgeBase() {
         }).join('\n');
 
         // 6. 간호팀/피부팀 시술 시간
-        const nurseText = otherProcedures.filter(p => p.team === '간호팀').map(p =>
-            `  · ${p.name}: 시술 ${p.procedure}분${p.anesthesia > 0 ? `, 마취 ${p.anesthesia}분` : ''}`
-        ).join('\n');
+        const doctorIdToName = {};
+        genmac.doctorProfiles.forEach(d => { doctorIdToName[d.id] = d.name; });
+
+        function formatProcedureLine(p) {
+            let line = `  · ${p.name}: 시술 ${p.procedure}분${p.anesthesia > 0 ? `, 마취 ${p.anesthesia}분` : ''}`;
+            if (p.doctorTimes && Object.keys(p.doctorTimes).length > 0) {
+                const parts = Object.entries(p.doctorTimes).map(([id, t]) =>
+                    `${doctorIdToName[id] || id}: ${t === null ? '시술불가' : t + '분'}`
+                );
+                const numericTimes = Object.values(p.doctorTimes).filter(t => t !== null);
+                const avg = numericTimes.length > 1
+                    ? Math.round(numericTimes.reduce((a, b) => a + b, 0) / numericTimes.length)
+                    : null;
+                line += ` [원장님별 실측: ${parts.join(', ')}${avg !== null ? `, 평균: ${avg}분` : ''}]`;
+            }
+            return line;
+        }
+
+        const nurseText = otherProcedures.filter(p => p.team === '간호팀').map(formatProcedureLine).join('\n');
 
         const skinCategories = ['리프팅', '레이저', '필'];
         const skinText = skinCategories.map(cat => {
             const items = otherProcedures.filter(p => p.team === '피부팀' && p.category === cat);
-            const lines = items.map(p =>
-                `  · ${p.name}: 시술 ${p.procedure}분${p.anesthesia > 0 ? `, 마취 ${p.anesthesia}분` : ''}`
-            ).join('\n');
+            const lines = items.map(formatProcedureLine).join('\n');
             return `[${cat}]\n${lines}`;
         }).join('\n');
 
