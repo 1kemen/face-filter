@@ -178,7 +178,7 @@ function createSystemPrompt(knowledgeBase) {
         1.  **전문가적이지만 쉬운 설명:** 당신은 전문가이지만, 고객을 대하듯 쉽고 친절한 말투를 사용하세요.
         2.  **정보 기반 답변 (우선순위):** 시술 소요시간, 의료진 배정, 시술 순서 등 클리닉 운영에 관한 질문은 반드시 아래 '참고 정보'에 근거하여 답변하세요. 단, 참고 정보에 없는 시술의 일반적인 특성·원리·효과에 대한 질문(예: 인모드, 울쎄라 등 기기 설명)은 당신의 일반 의학·미용 지식으로 자유롭게 답변하세요.
         3.  **코드나 오류 메시지 절대 금지:** 당신은 코드를 실행하거나 프로그래밍을 하는 역할이 아닙니다. 따라서 자바스크립트 코드, 'rules is not defined'와 같은 기술 오류 메시지, 또는 기타 컴퓨터 용어를 절대로 사용해서는 안 됩니다. 오직 자연스러운 한국어 대화만을 생성해야 합니다.
-        7.  **웹 검색 활용:** 내부 참고 정보에 없는 시술·의약품·의학 정보가 필요할 때는 web_search 도구를 호출하여 최신 정보를 검색한 후 답변하세요. 단, 클리닉 운영(소요시간·의료진 배정 등)에 관한 질문은 반드시 내부 데이터를 우선 사용하세요.
+        7.  **웹 검색 활용 (엄격한 제한):** web_search 도구는 시술·의약품의 원리·효과·부작용 등 순수한 의학·미용 지식 질문에만 사용하세요. 소요시간·의료진 배정·시술 순서·샷수·계수 등 클리닉 운영에 관한 모든 질문은 절대 웹검색을 사용하지 말고 내부 참고 정보만으로 즉시 답변하세요.
         4.  **시술 연계 순서 질문:** 시술 연계 순서만 물어볼 경우(이유·설명 요청 없음), 번호 리스트로 순서만 간결하게 답변하세요. 이유·원칙·배경 설명은 사용자가 '왜', '이유', '설명해줘' 등을 직접 요청할 때만 추가하세요.
         5.  **데이터 없는 부위 추정 답변:** 젠맥 바디 제모 시 데이터에 없는 부위가 나와도 "데이터가 없어 안내 어렵습니다" 같은 단정적 거부 표현을 사용하지 마세요. 대신 부위의 ①면적 크기, ②곡면·요철 복잡도, ③시술 리스크를 종합적으로 판단하여 인접 유사 부위와 비교한 대략적 추정 시간을 "(추정)" 표시와 함께 제시하세요. 추정값은 너무 보수적으로 잡지 말고 실제 제모 맥락에서 합리적인 수준으로 산정하세요.
         6.  **부위명 동의어·별칭 매핑:** '올브항', '올브라질리언'은 반드시 브라질리언으로 인식하여 브라질리언 소요시간을 적용하세요. 데이터 없음으로 처리하는 것은 절대 금지입니다.
@@ -287,101 +287,109 @@ const MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
 // AI가 참고할 내부 정보 파일을 읽고, 자연어 텍스트로 변환하는 함수
 // 이 함수가 Vercel에 의해 API 요청 시 실행됩니다.
 module.exports = async (req, res) => {
-  // CORS 헤더 설정 (외부 도메인에서의 요청 허용)
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // 브라우저가 보내는 사전 요청(pre-flight) 처리
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).end();
 
-  // POST 요청만 허용
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
-  }
+  // SSE 스트리밍 헤더
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('X-Accel-Buffering', 'no');
+
+  const sendChunk = (text) => res.write(`data: ${JSON.stringify({ text })}\n\n`);
+  const sendError = (msg) => res.write(`data: ${JSON.stringify({ error: msg })}\n\n`);
+  const sendDone = () => { res.write('data: [DONE]\n\n'); res.end(); };
 
   try {
     const { messages } = req.body;
     if (!Array.isArray(messages) || messages.length === 0) {
-      return res.status(400).json({ response: '잘못된 요청입니다.' });
+      sendError('잘못된 요청입니다.'); return sendDone();
     }
 
-    // 비용 보호: 단일 메시지 최대 1500자, 대화 기록 최대 20개
     const MAX_MSG_LENGTH = 1500;
     const MAX_HISTORY = 20;
     if (messages.some(m => typeof m.content === 'string' && m.content.length > MAX_MSG_LENGTH)) {
-      return res.status(400).json({ response: `메시지가 너무 깁니다. (최대 ${MAX_MSG_LENGTH}자)` });
+      sendError(`메시지가 너무 깁니다. (최대 ${MAX_MSG_LENGTH}자)`); return sendDone();
     }
     const limitedMessages = messages.slice(-MAX_HISTORY);
-
     const userQuery = limitedMessages[limitedMessages.length - 1].content;
     console.log('Received User Query:', userQuery);
 
     const systemPrompt = getSystemPrompt();
+    let fullResponse = '';
 
-    // OpenAI API를 호출하여 채팅 응답을 생성합니다.
-    let aiResponse;
-    try {
-      const completion = await openai.chat.completions.create({
-        model: MODEL,
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...limitedMessages
-        ],
-        tools: [webSearchTool],
-        tool_choice: "auto"
-      });
+    // 1차 스트리밍 (tool_choice: auto)
+    const stream1 = await openai.chat.completions.create({
+      model: MODEL,
+      messages: [{ role: 'system', content: systemPrompt }, ...limitedMessages],
+      tools: [webSearchTool],
+      tool_choice: 'auto',
+      stream: true
+    });
 
-      const choice = completion.choices[0];
-      if (choice.finish_reason === 'tool_calls' && choice.message.tool_calls?.length > 0) {
-        const toolCall = choice.message.tool_calls[0];
-        const args = JSON.parse(toolCall.function.arguments);
-        console.log('Web search query:', args.query);
-        const searchResult = await executeWebSearch(args.query);
+    let toolCall = null;
+    const assistantMsg = { role: 'assistant', content: null, tool_calls: null };
 
-        const completion2 = await openai.chat.completions.create({
-          model: MODEL,
-          messages: [
-            { role: "system", content: systemPrompt },
-            ...limitedMessages,
-            choice.message,
-            {
-              role: "tool",
-              tool_call_id: toolCall.id,
-              content: searchResult ? `웹 검색 결과:\n${searchResult}` : "검색 결과를 가져오지 못했습니다."
-            }
-          ]
-        });
-        aiResponse = completion2.choices[0].message.content;
-      } else {
-        aiResponse = choice.message.content;
+    for await (const chunk of stream1) {
+      const delta = chunk.choices[0]?.delta;
+      if (delta?.content) {
+        sendChunk(delta.content);
+        fullResponse += delta.content;
+        assistantMsg.content = (assistantMsg.content || '') + delta.content;
       }
-    } catch (toolError) {
-      console.error('Tool call failed, falling back to no-tools:', toolError.message);
-      const fallback = await openai.chat.completions.create({
+      if (delta?.tool_calls) {
+        if (!toolCall) toolCall = { id: '', name: '', arguments: '' };
+        const tc = delta.tool_calls[0];
+        if (tc.id) toolCall.id += tc.id;
+        if (tc.function?.name) toolCall.name += tc.function.name;
+        if (tc.function?.arguments) toolCall.arguments += tc.function.arguments;
+      }
+    }
+
+    // 웹검색 tool call이 발생한 경우 2차 스트리밍
+    if (toolCall) {
+      console.log('Web search query:', toolCall.name, toolCall.arguments);
+      let searchArgs;
+      try { searchArgs = JSON.parse(toolCall.arguments); } catch { searchArgs = { query: '' }; }
+      const searchResult = await executeWebSearch(searchArgs.query);
+
+      assistantMsg.tool_calls = [{
+        id: toolCall.id, type: 'function',
+        function: { name: toolCall.name, arguments: toolCall.arguments }
+      }];
+
+      const stream2 = await openai.chat.completions.create({
         model: MODEL,
         messages: [
-          { role: "system", content: systemPrompt },
-          ...limitedMessages
-        ]
+          { role: 'system', content: systemPrompt },
+          ...limitedMessages,
+          assistantMsg,
+          { role: 'tool', tool_call_id: toolCall.id, content: searchResult ? `웹 검색 결과:\n${searchResult}` : '검색 결과를 가져오지 못했습니다.' }
+        ],
+        stream: true
       });
-      aiResponse = fallback.choices[0].message.content;
+
+      fullResponse = '';
+      for await (const chunk of stream2) {
+        const delta = chunk.choices[0]?.delta;
+        if (delta?.content) {
+          sendChunk(delta.content);
+          fullResponse += delta.content;
+        }
+      }
     }
 
-    // Google Sheets 로그 기록 (https 모듈로 직접 POST, 리다이렉트 미추적)
+    sendDone();
+
     if (process.env.SHEETS_WEBHOOK_URL) {
-      await logToSheets(process.env.SHEETS_WEBHOOK_URL, userQuery, aiResponse);
+      logToSheets(process.env.SHEETS_WEBHOOK_URL, userQuery, fullResponse);
     }
-
-    return res.status(200).json({ response: aiResponse });
   } catch (error) {
-    // 서버 로그에 더 상세한 에러를 기록합니다.
     console.error('Error in API function:', error);
-
-    // 클라이언트에게 더 유용한 에러 메시지를 전달합니다.
-    const errorMessage = error.response && error.response.data ? JSON.stringify(error.response.data) : error.message;
-    return res.status(500).json({ response: `AI 모델 호출 중 서버 오류 발생: ${errorMessage}` });
+    sendError(`서버 오류: ${error.message}`);
+    sendDone();
   }
 };
