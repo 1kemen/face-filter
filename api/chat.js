@@ -74,14 +74,24 @@ function getKnowledgeBase() {
         function formatProcedureLine(p) {
             let line = `  · ${p.name}: 시술 ${p.procedure}분${p.anesthesia > 0 ? `, 마취 ${p.anesthesia}분` : ''}`;
             if (p.doctorTimes && Object.keys(p.doctorTimes).length > 0) {
-                const parts = Object.entries(p.doctorTimes).map(([id, t]) =>
-                    `${doctorIdToName[id] || id}: ${t === null ? '시술불가' : t + '분'}`
-                );
-                const numericTimes = Object.values(p.doctorTimes).filter(t => t !== null);
-                const avg = numericTimes.length > 1
-                    ? Math.round(numericTimes.reduce((a, b) => a + b, 0) / numericTimes.length)
+                const parts = [];
+                const docAvgs = [];
+                for (const [id, val] of Object.entries(p.doctorTimes)) {
+                    const name = doctorIdToName[id] || id;
+                    if (val === null) {
+                        parts.push(`${name}: 시술불가`);
+                    } else {
+                        const arr = Array.isArray(val) ? val : [val];
+                        const docAvg = Math.round(arr.reduce((a, b) => a + b, 0) / arr.length);
+                        const detail = arr.length > 1 ? `${arr.join('·')}분 → 평균 ${docAvg}분 (${arr.length}회)` : `${docAvg}분`;
+                        parts.push(`${name}: ${detail}`);
+                        docAvgs.push(docAvg);
+                    }
+                }
+                const overallAvg = docAvgs.length > 1
+                    ? Math.round(docAvgs.reduce((a, b) => a + b, 0) / docAvgs.length)
                     : null;
-                line += ` [원장님별 실측: ${parts.join(', ')}${avg !== null ? `, 평균: ${avg}분` : ''}]`;
+                line += ` [원장님별 실측: ${parts.join(', ')}${overallAvg !== null ? `, 전체평균: ${overallAvg}분` : ''}]`;
             }
             return line;
         }
