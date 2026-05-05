@@ -472,14 +472,15 @@
                                                         <div style={{
                                                             position: 'absolute',
                                                             bottom: 'calc(100% + 8px)',
-                                                            left: '50%',
-                                                            transform: 'translateX(-50%)',
+                                                            left: '0',
+                                                            width: '180px',
                                                             background: '#1e1b4b',
                                                             color: 'white',
                                                             padding: '6px 11px',
                                                             borderRadius: '8px',
                                                             fontSize: '0.72rem',
-                                                            whiteSpace: 'nowrap',
+                                                            whiteSpace: 'normal',
+                                                            wordBreak: 'keep-all',
                                                             zIndex: 50,
                                                             boxShadow: '0 4px 14px rgba(0,0,0,0.18)',
                                                             pointerEvents: 'none',
@@ -488,8 +489,7 @@
                                                             {doc.memo}
                                                             <div style={{
                                                                 position: 'absolute',
-                                                                top: '100%', left: '50%',
-                                                                transform: 'translateX(-50%)',
+                                                                top: '100%', left: '20px',
                                                                 borderLeft: '5px solid transparent',
                                                                 borderRight: '5px solid transparent',
                                                                 borderTop: '5px solid #1e1b4b',
