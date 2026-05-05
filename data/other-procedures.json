@@ -3,7 +3,6 @@
   { "team": "간호팀", "name": "포텐자", "procedure": 14, "anesthesia": 20, "note": "" },
   { "team": "간호팀", "name": "MTS", "procedure": 6.5, "anesthesia": 15, "note": "시술 5-8분" },
   { "team": "간호팀", "name": "더마샤인", "procedure": 6, "anesthesia": 0, "note": "시술 5-7분" },
-  { "team": "간호팀", "name": "볼륨 시술 (쥬베룩, 필러 등)", "procedure": 15, "anesthesia": 10, "note": "시술 10-20분" },
   { "team": "간호팀", "name": "울쎄라 (300샷)", "procedure": 25, "anesthesia": 15, "note": "마취 15분 적용" },
 
   { "team": "피부팀", "category": "리프팅", "name": "인모드 FX (얼굴전체)", "procedure": 15, "anesthesia": 10, "note": "" },
