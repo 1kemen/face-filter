@@ -20,8 +20,8 @@
     { "id": "A_normal", "name": "A대표원장님(평시)", "face": 1.0, "body": 0.7, "injection": 0.8, "color": "#6366f1" },
     { "id": "A_peak",  "name": "A대표원장님(피크)", "face": 0.8, "body": 0.7, "injection": 0.8, "color": "#ef4444" },
     { "id": "B",       "name": "B정원장님",         "face": 1.3, "body": 1.0, "injection": 2.0, "color": "#8b5cf6" },
-    { "id": "C",       "name": "C은원장님",         "face": 2.0, "body": 1.0, "injection": 1.7, "color": "#10b981" },
-    { "id": "D",       "name": "D배원장님",         "face": 2.0, "body": 1.0, "injection": 0.92, "color": "#f59e0b" }
+    { "id": "C",       "name": "C은원장님",         "face": 1.8, "body": 1.0, "injection": 1.7, "color": "#10b981" },
+    { "id": "D",       "name": "D배원장님",         "face": 1.8, "body": 1.0, "injection": 0.92, "color": "#f59e0b" }
   ],
   "injectionData": [
     { "name": "보톡스 (50유닛)",         "baseTimeSec": 180,  "category": "injection" },
