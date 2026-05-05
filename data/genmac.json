@@ -4,7 +4,7 @@
     { "name": "인중+앞턱", "time": 45, "type": "face" },
     { "name": "인중+앞턱+턱밑", "time": 75, "type": "face" },
     { "name": "얼굴전체", "time": 120, "type": "face" },
-    { "name": "ALL페이스", "time": 360, "type": "face" },
+    { "name": "ALL페이스", "time": 300, "type": "face" },
     { "name": "구렛나루/미간", "time": 30, "type": "face" },
     { "name": "눈밑+관자", "time": 30, "type": "face" }
   ],
